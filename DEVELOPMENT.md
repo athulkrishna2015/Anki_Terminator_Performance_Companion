@@ -1,6 +1,6 @@
 # Anki Terminator Performance Companion - Developer Documentation
 
-This repository contains the source code for the **Anki Terminator Performance Companion** add-on (`addon-fixes`).
+This repository contains the source code for the **Anki Terminator Performance Companion** add-on.
 
 This addon is designed to be installed alongside the original **Anki Terminator V2 - ChatGPT DeepSeek Sidebar for Reviewer** (`1468920185`). At startup, it dynamically patches the original addon in memory to eliminate high-CPU hotspots without modifying a single file in the original addon's directory.
 
@@ -9,11 +9,12 @@ This addon is designed to be installed alongside the original **Anki Terminator 
 ## Project Structure
 
 ```
-addon-fixes/
-├── __init__.py               # Entry point: performs in-memory monkey patching of 1468920185
-├── manifest.json             # Core add-on metadata and configuration requirements
+Anki_Terminator_Performance_Companion/ (Repo Root)
+├── Anki_Terminator_Performance_Companion/ (Addon Source)
+│   ├── __init__.py           # Entry point: performs in-memory monkey patching of 1468920185
+│   ├── manifest.json         # Core add-on metadata and configuration requirements
+│   └── VERSION               # Tracking file for the current SemVer version
 ├── DEVELOPMENT.md            # This documentation file
-├── VERSION                   # Tracking file for the current SemVer version
 ├── bump.py                   # Version auto-increment script
 └── make_ankiaddon.py         # Packaging script → produces the .ankiaddon release file
 ```
@@ -37,11 +38,11 @@ The companion addon works by implementing runtime dynamic overrides (monkey patc
 ## Development Workflow
 
 ### 1. Local Testing
-To test this addon, ensure that the original addon (`1468920185`) is installed in your Anki profile, and that this repository is symlinked or placed inside your Anki addons directory under the folder name `addon-fixes`.
+To test this addon, ensure that the original addon (`1468920185`) is installed in your Anki profile, and that the `Anki_Terminator_Performance_Companion` source folder is symlinked or placed inside your Anki addons directory.
 
 **Linux:**
 ```shell
-ln -s "$(pwd)" ~/.local/share/Anki2/addons21/addon-fixes
+ln -s "$(pwd)/Anki_Terminator_Performance_Companion" ~/.local/share/Anki2/addons21/Anki_Terminator_Performance_Companion
 ```
 
 Restart Anki to automatically apply the optimizations. You will see confirmation logs in the terminal/stdout:
