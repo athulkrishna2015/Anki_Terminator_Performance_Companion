@@ -32,12 +32,12 @@ def patch(ad_blocker_mod):
     # Check if adblocker optimization is enabled
     config = mw.addonManager.getConfig("000_addon_fixes") or {}
     if not config.get("enable_adblocker_optimization", True):
-        companion_logger.log("Ad-Blocker optimization is disabled in settings, skipping.")
+        companion_logger.log("[AdBlocker Patch] Ad-Blocker optimization is disabled in settings, skipping.")
         return
 
     # 1. Redefine load_ad_domains_from_easylist
     def optimized_load_ad_domains(path=ad_blocker_mod.easylist_path):
-        companion_logger.log("Optimizing ad-blocker rule matching loading...")
+        companion_logger.log("[AdBlocker Patch] Optimizing ad-blocker rule matching loading...")
         block_domains = set()
         allow_domains = set()
 
@@ -81,7 +81,7 @@ def patch(ad_blocker_mod):
             else:
                 allow_pure_domains.add(d)
 
-        companion_logger.log(f"Ad-blocker optimization complete: split {len(block_domains)} block domains into {len(block_pure_domains)} pure set entries.")
+        companion_logger.log(f"[AdBlocker Patch] Optimization complete: split {len(block_domains)} block rules into {len(block_pure_domains)} pure set lookups.")
         return block_pure_domains, block_path_rules, allow_pure_domains, allow_path_rules
 
     # Apply patched load function
@@ -118,14 +118,16 @@ def patch(ad_blocker_mod):
                     request_type=resource_type
                 )
                 if result.matched:
+                    companion_logger.log(f"[AdBlocker Patch] Blocked ad (Rust Engine): {url}")
                     info.block(True)
             else:
                 # block list
                 if match_rules(url, self.block_pure_domains, self.block_path_rules):
+                    companion_logger.log(f"[AdBlocker Patch] Blocked ad (Fallback O(1) Match): {url}")
                     info.block(True)
 
         except Exception as e:
-            companion_logger.log(f"Error in optimized interceptRequest: {e}")
+            companion_logger.log(f"[AdBlocker Patch] Error in optimized interceptRequest: {e}")
 
     AdBlockerClass.interceptRequest = optimized_intercept_request
-    companion_logger.log("Successfully hooked AdBlocker interceptRequest with O(1) set matching.")
+    companion_logger.log("[AdBlocker Patch] Successfully hooked AdBlocker interceptRequest with O(1) matching & diagnostic logs.")
