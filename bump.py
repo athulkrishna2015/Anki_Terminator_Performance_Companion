@@ -128,8 +128,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     )
     parser.add_argument(
         "--addon-dir",
-        default="addon",
-        help="Path to the addon directory (default: addon).",
+        default="Anki_Terminator_Performance_Companion",
+        help="Path to the addon directory (default: Anki_Terminator_Performance_Companion).",
     )
     return parser.parse_args(argv[1:])
 
