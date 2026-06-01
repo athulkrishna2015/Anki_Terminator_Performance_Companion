@@ -1,6 +1,7 @@
 import importlib
 from aqt import mw
 from aqt.qt import *
+from ..logger import companion_logger
 
 def inject_gemini_performance_css(page: QWebEnginePage):
     performance_js = """
@@ -20,8 +21,15 @@ def inject_gemini_performance_css(page: QWebEnginePage):
 })();
 """
     page.runJavaScript(performance_js)
+    companion_logger.log("CSS patch injected successfully (Gemini animations/transitions disabled)")
 
 def patch(dock_web_view_mod):
+    # Check if CSS optimization is enabled
+    config = mw.addonManager.getConfig("addon-fixes") or {}
+    if not config.get("enable_css_optimization", True):
+        companion_logger.log("CSS animation patch is disabled in settings, skipping.")
+        return
+
     original_inject = dock_web_view_mod.CustomWebEnginePage.inject_javascript
 
     def patched_inject(self):
@@ -29,9 +37,9 @@ def patch(dock_web_view_mod):
         original_inject(self)
         
         # Companion optimization for Gemini
-        config = mw.addonManager.getConfig("1468920185")
-        if config and config.get("now_AI_type") == "Google_Bard":
+        addon_config = mw.addonManager.getConfig("1468920185")
+        if addon_config and addon_config.get("now_AI_type") == "Google_Bard":
             inject_gemini_performance_css(self)
 
     dock_web_view_mod.CustomWebEnginePage.inject_javascript = patched_inject
-    print("[Terminator Companion] Successfully patched CustomWebEnginePage.inject_javascript for Gemini CSS optimization!")
+    companion_logger.log("Successfully hooked CustomWebEnginePage.inject_javascript for CSS injection.")

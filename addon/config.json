@@ -1,0 +1,6 @@
+{
+    "enable_lifecycle_freezing": true,
+    "enable_adblocker_optimization": true,
+    "enable_css_optimization": true,
+    "thaw_duration_seconds": 30
+}

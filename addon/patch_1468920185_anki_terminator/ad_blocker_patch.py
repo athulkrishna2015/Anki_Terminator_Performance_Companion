@@ -1,6 +1,8 @@
 import importlib
 from urllib.parse import urlparse
+from aqt import mw
 from aqt.qt import *
+from ..logger import companion_logger
 
 def get_url_domains(url):
     try:
@@ -27,8 +29,15 @@ def match_rules(url, pure_domains_set, path_rules_list):
     return False
 
 def patch(ad_blocker_mod):
+    # Check if adblocker optimization is enabled
+    config = mw.addonManager.getConfig("addon-fixes") or {}
+    if not config.get("enable_adblocker_optimization", True):
+        companion_logger.log("Ad-Blocker optimization is disabled in settings, skipping.")
+        return
+
     # 1. Redefine load_ad_domains_from_easylist
     def optimized_load_ad_domains(path=ad_blocker_mod.easylist_path):
+        companion_logger.log("Optimizing ad-blocker rule matching loading...")
         block_domains = set()
         allow_domains = set()
 
@@ -72,6 +81,7 @@ def patch(ad_blocker_mod):
             else:
                 allow_pure_domains.add(d)
 
+        companion_logger.log(f"Ad-blocker optimization complete: split {len(block_domains)} block domains into {len(block_pure_domains)} pure set entries.")
         return block_pure_domains, block_path_rules, allow_pure_domains, allow_path_rules
 
     # Apply patched load function
@@ -115,7 +125,7 @@ def patch(ad_blocker_mod):
                     info.block(True)
 
         except Exception as e:
-            print(f"[Terminator Companion] Error in interceptRequest: {e}")
+            companion_logger.log(f"Error in optimized interceptRequest: {e}")
 
     AdBlockerClass.interceptRequest = optimized_intercept_request
-    print("[Terminator Companion] Successfully patched AdBlocker interceptRequest for O(1) domain lookups!")
+    companion_logger.log("Successfully hooked AdBlocker interceptRequest with O(1) set matching.")
