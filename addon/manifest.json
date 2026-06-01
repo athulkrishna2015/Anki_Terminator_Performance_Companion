@@ -1,9 +1,9 @@
 {
-    "name": "Anki Terminator Performance Companion",
-    "package": "000_addon_fixes",
-    "desc": "Performance companion addon for Anki Terminator V2 (ChatGPT DeepSeek Sidebar). Optimizes ad-blocker scans to O(1) set lookups and injects CSS performance optimizations to eliminate Gemini background rendering CPU spikes without touching original files.",
-    "version": "1.0.1",
-    "human_version": "1.0.1",
-    "min_point_version": 1,
-    "max_point_version": 250902
+  "name": "Anki Terminator Performance Companion",
+  "package": "000_addon_fixes",
+  "desc": "Performance companion addon for Anki Terminator V2 (ChatGPT DeepSeek Sidebar). Optimizes ad-blocker scans to O(1) set lookups and injects CSS performance optimizations to eliminate Gemini background rendering CPU spikes without touching original files.",
+  "version": "1.0.0",
+  "human_version": "1.0.0",
+  "min_point_version": 1,
+  "max_point_version": 250902
 }
