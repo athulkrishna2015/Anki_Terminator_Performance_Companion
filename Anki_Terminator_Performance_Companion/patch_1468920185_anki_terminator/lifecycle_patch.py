@@ -53,7 +53,7 @@ def patch(dock_web_view_mod):
     # Helper functions to freeze and thaw using QStackedWidget
     def freeze_sidebar(sidebar):
         try:
-            cfg = mw.addonManager.getConfig("000_addon_fixes") or {}
+            cfg = mw.addonManager.getConfig("Anki_Terminator_Performance_Companion") or {}
             if not cfg.get("enable_lifecycle_freezing", True):
                 return
             

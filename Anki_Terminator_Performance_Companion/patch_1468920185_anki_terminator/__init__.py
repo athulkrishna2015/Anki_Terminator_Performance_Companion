@@ -1,4 +1,4 @@
-# addon/patch_1468920185_anki_terminator/__init__.py
+# Anki_Terminator_Performance_Companion/patch_1468920185_anki_terminator/__init__.py
 import importlib
 from ..logger import companion_logger
 

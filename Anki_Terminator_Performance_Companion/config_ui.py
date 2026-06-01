@@ -1,4 +1,4 @@
-# addon/config_ui.py
+# Anki_Terminator_Performance_Companion/config_ui.py
 from aqt import mw
 from aqt.qt import *
 from .logger import companion_logger

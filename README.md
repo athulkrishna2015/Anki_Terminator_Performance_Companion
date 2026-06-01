@@ -2,7 +2,7 @@
 
 An elegant, dynamic performance-optimization add-on for Anki. 
 
-This companion addon (`000_addon_fixes`) is designed to run seamlessly alongside the original **Anki Terminator V2 - ChatGPT DeepSeek Sidebar for Reviewer** (`1468920185`). By dynamically patching memory during Anki startup, it eliminates high-CPU bottlenecks completely **without modifying a single line of code in the original addon's directory**.
+This companion addon is designed to run seamlessly alongside the original **Anki Terminator V2 - ChatGPT DeepSeek Sidebar for Reviewer** (`1468920185`). By dynamically patching memory during Anki startup, it eliminates high-CPU bottlenecks completely **without modifying a single line of code in the original addon's directory**.
 
 ---
 
@@ -29,14 +29,14 @@ This companion addon (`000_addon_fixes`) is designed to run seamlessly alongside
 ## Project Directory Structure
 
 ```
-addon-fixes/
+Anki_Terminator_Performance_Companion/ (Repo Root)
 ├── README.md                 # Main overview and optimization documentation (This file)
 ├── DEVELOPMENT.md            # Advanced developer guide (versioning, packaging, local setups)
 ├── bump.py                   # SemVer version bump utility
 ├── make_ankiaddon.py         # Packages the directory into a production .ankiaddon release
-└── addon/                    # Actual Anki addon source
+└── Anki_Terminator_Performance_Companion/ (Addon Source)
     ├── __init__.py           # Pre-load orchestrator; dynamically applies memory patches
-    ├── manifest.json         # Addon declaration (loaded as '000_addon_fixes')
+    ├── manifest.json         # Addon declaration
     ├── config.json           # Optimization features configuration
     ├── config_ui.py          # Modern settings GUI dialog inside Anki
     ├── logger.py             # Thread-safe asynchronous logging worker
@@ -53,5 +53,5 @@ addon-fixes/
 ## How to Install and Test
 
 1. Ensure the original addon (`1468920185`) is installed.
-2. Link the repository's `addon` folder or place it inside your Anki profile directory's `addons21` folder as `000_addon_fixes` (this load-order name guarantees the companion patches apply *before* the target addon initializes).
+2. Link or place the `Anki_Terminator_Performance_Companion` source folder inside your Anki profile directory's `addons21` folder.
 3. Start Anki. Open the addon settings panel to access the custom Configuration UI, enabling you to toggle features, adjust freeze-thaw sensitivity, and inspect logs in real time.
