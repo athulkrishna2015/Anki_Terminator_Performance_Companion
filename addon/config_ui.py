@@ -91,8 +91,13 @@ class CompanionConfigDialog(QDialog):
         self.log_text.moveCursor(QTextCursor.MoveOperation.End)
         
         btn_layout = QHBoxLayout()
+        self.copy_btn = QPushButton("Copy Logs", self)
+        self.copy_btn.clicked.connect(self.copy_logs)
+        
         self.clear_btn = QPushButton("Clear Logs", self)
         self.clear_btn.clicked.connect(self.clear_logs)
+        
+        btn_layout.addWidget(self.copy_btn)
         btn_layout.addStretch()
         btn_layout.addWidget(self.clear_btn)
         
@@ -105,6 +110,11 @@ class CompanionConfigDialog(QDialog):
         else:
             self.log_text.appendPlainText(line)
             self.log_text.moveCursor(QTextCursor.MoveOperation.End)
+            
+    def copy_logs(self):
+        clipboard = QGuiApplication.clipboard()
+        clipboard.setText(self.log_text.toPlainText())
+        QToolTip.showText(self.copy_btn.mapToGlobal(QPoint(0, 0)), "Logs copied to clipboard!")
             
     def clear_logs(self):
         companion_logger.clear()
