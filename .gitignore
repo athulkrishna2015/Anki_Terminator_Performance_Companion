@@ -1,0 +1,18 @@
+# Python bytecode cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Package build artifacts
+*.zip
+*.ankiaddon
+
+# Runtime Logs
+addon/companion.log
+*.log
+
+# Editor & OS files
+.DS_Store
+.vscode/
+.idea/
