@@ -10,7 +10,7 @@ This addon is designed to be installed alongside the original **Anki Terminator 
 
 ```
 Anki_Terminator_Performance_Companion/ (Repo Root)
-├── Anki_Terminator_Performance_Companion/ (Addon Source)
+├── addon/ (Addon Source)
 │   ├── __init__.py           # Entry point: performs in-memory monkey patching of 1468920185
 │   ├── manifest.json         # Core add-on metadata and configuration requirements
 │   └── VERSION               # Tracking file for the current SemVer version
@@ -38,11 +38,11 @@ The companion addon works by implementing runtime dynamic overrides (monkey patc
 ## Development Workflow
 
 ### 1. Local Testing
-To test this addon, ensure that the original addon (`1468920185`) is installed in your Anki profile, and that the `Anki_Terminator_Performance_Companion` source folder is symlinked or placed inside your Anki addons directory.
+To test this addon, ensure that the original addon (`1468920185`) is installed in your Anki profile, and that the `addon` source folder is symlinked or placed inside your Anki addons directory.
 
 **Linux:**
 ```shell
-ln -s "$(pwd)/Anki_Terminator_Performance_Companion" ~/.local/share/Anki2/addons21/Anki_Terminator_Performance_Companion
+ln -s "$(pwd)/addon" ~/.local/share/Anki2/addons21/Anki_Terminator_Performance_Companion
 ```
 
 Restart Anki to automatically apply the optimizations. You will see confirmation logs in the terminal/stdout:

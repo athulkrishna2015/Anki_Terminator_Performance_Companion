@@ -34,7 +34,7 @@ Anki_Terminator_Performance_Companion/ (Repo Root)
 ├── DEVELOPMENT.md            # Advanced developer guide (versioning, packaging, local setups)
 ├── bump.py                   # SemVer version bump utility
 ├── make_ankiaddon.py         # Packages the directory into a production .ankiaddon release
-└── Anki_Terminator_Performance_Companion/ (Addon Source)
+└── addon/ (Addon Source)
     ├── __init__.py           # Pre-load orchestrator; dynamically applies memory patches
     ├── manifest.json         # Addon declaration
     ├── config.json           # Optimization features configuration

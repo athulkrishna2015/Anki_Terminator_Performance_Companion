@@ -43,4 +43,3 @@ def patch(dock_web_view_mod):
 
     dock_web_view_mod.ResizableWebView.inject_javascript = patched_inject
     companion_logger.log("Successfully hooked ResizableWebView.inject_javascript for CSS injection.")
-n.")

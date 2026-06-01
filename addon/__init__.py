@@ -1,4 +1,4 @@
-# Anki_Terminator_Performance_Companion/__init__.py
+# addon/__init__.py
 import importlib
 from aqt import mw
 from .logger import companion_logger

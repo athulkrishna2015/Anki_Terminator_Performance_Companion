@@ -1,4 +1,4 @@
-# Anki_Terminator_Performance_Companion/logger.py
+# addon/logger.py
 import os
 import queue
 import threading
