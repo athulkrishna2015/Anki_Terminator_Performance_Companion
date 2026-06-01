@@ -5,7 +5,7 @@ from ..logger import companion_logger
 
 def patch(dock_web_view_mod):
     # Check if lifecycle freezing is enabled
-    config = mw.addonManager.getConfig("addon-fixes") or {}
+    config = mw.addonManager.getConfig("000_addon_fixes") or {}
     if not config.get("enable_lifecycle_freezing", True):
         companion_logger.log("Smart lifecycle freezing is disabled in settings, skipping.")
         return
@@ -29,7 +29,7 @@ def patch(dock_web_view_mod):
     def freeze_page(page: QWebEnginePage):
         try:
             # Re-read config to check if still enabled
-            cfg = mw.addonManager.getConfig("addon-fixes") or {}
+            cfg = mw.addonManager.getConfig("000_addon_fixes") or {}
             if not cfg.get("enable_lifecycle_freezing", True):
                 return
             page.setLifecycleState(dock_web_view_mod.QWebEnginePage.LifecycleState.Frozen)
@@ -42,7 +42,7 @@ def patch(dock_web_view_mod):
 
     def patched_runJavaScript(self, *args, **kwargs):
         try:
-            cfg = mw.addonManager.getConfig("addon-fixes") or {}
+            cfg = mw.addonManager.getConfig("000_addon_fixes") or {}
             if cfg.get("enable_lifecycle_freezing", True):
                 # Wake up the page to execute the query
                 self.setLifecycleState(dock_web_view_mod.QWebEnginePage.LifecycleState.Active)
