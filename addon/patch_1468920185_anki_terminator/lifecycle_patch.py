@@ -17,25 +17,22 @@ def patch(dock_web_view_mod):
         self.last_text_length = 0
         self.stable_checks = 0
         self.is_hovered = False
-        
-        # Create static screenshot label
-        self.snapshot_label = QLabel(self)
+        # Create static screenshot label overlaying the webview
+        self.snapshot_label = QLabel(self.webview)
         self.snapshot_label.setScaledContents(True)
-        self.snapshot_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.snapshot_label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.snapshot_label.hide()
         
-        # Create stacked widget for flicker-free transitions
-        self.stacked_widget = QStackedWidget(self)
-        self.stacked_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        
-        if self.layout():
-            # Reparent webview inside stacked widget
-            self.layout().removeWidget(self.webview)
-            self.stacked_widget.addWidget(self.webview)
-            self.stacked_widget.addWidget(self.snapshot_label)
-            
-            # Add stacked widget back to layout
-            self.layout().addWidget(self.stacked_widget)
-            self.stacked_widget.setCurrentWidget(self.webview)
+        # Sync snapshot label geometry on resize
+        original_webview_resize = self.webview.resizeEvent
+        def new_webview_resize(event):
+            if hasattr(self, "snapshot_label") and self.snapshot_label:
+                self.snapshot_label.setGeometry(self.webview.rect())
+            if original_webview_resize:
+                original_webview_resize(event)
+            else:
+                super(self.webview.__class__, self.webview).resizeEvent(event)
+        self.webview.resizeEvent = new_webview_resize
             
         # Hook the initial page load to freeze it after 5 seconds
         def on_initial_load(success):
@@ -46,6 +43,7 @@ def patch(dock_web_view_mod):
                 
         if hasattr(self, "webpage") and self.webpage:
             self.webpage.loadFinished.connect(on_initial_load)
+            self.webpage._is_terminator_sidebar = True
             companion_logger.log("[Lifecycle Patch] Connected loadFinished signal for initial load freeze.")
 
     dock_web_view_mod.ResizableWebView.__init__ = new_init
@@ -58,9 +56,14 @@ def patch(dock_web_view_mod):
                 return
             
             # Do nothing if already frozen
-            if sidebar.stacked_widget.currentWidget() == sidebar.snapshot_label:
+            if sidebar.snapshot_label.isVisible():
                 return
                 
+            # REFUSE TO FREEZE if sidebar is still loading
+            if getattr(sidebar, "loading", False) or not sidebar.webview.isVisible():
+                companion_logger.log("[Lifecycle Patch] Freeze deferred: Sidebar is still loading...")
+                return
+
             # REFUSE TO FREEZE if Gemini is actively generating a response!
             if sidebar.is_responding:
                 companion_logger.log("[Lifecycle Patch] Freeze deferred: Gemini is currently generating a response...")
@@ -75,7 +78,7 @@ def patch(dock_web_view_mod):
             def capture_and_freeze():
                 try:
                     # Double-check states after the delay
-                    if getattr(sidebar, "is_hovered", False) or sidebar.is_responding:
+                    if getattr(sidebar, "is_hovered", False) or sidebar.is_responding or not sidebar.webview.isVisible():
                         companion_logger.log("[Lifecycle Patch] Freeze cancelled: State changed during delay.")
                         return
                         
@@ -89,9 +92,11 @@ def patch(dock_web_view_mod):
                         return
                         
                     sidebar.snapshot_label.setPixmap(pixmap)
+                    sidebar.snapshot_label.setGeometry(sidebar.webview.rect())
                     
-                    # 2. Swap pages in stacked widget (completely flicker-free!)
-                    sidebar.stacked_widget.setCurrentWidget(sidebar.snapshot_label)
+                    # 2. Show overlay
+                    sidebar.snapshot_label.show()
+                    sidebar.snapshot_label.raise_()
                     
                     # 3. Request background thread freeze
                     if hasattr(sidebar, "webpage") and sidebar.webpage:
@@ -99,7 +104,7 @@ def patch(dock_web_view_mod):
                             sidebar.webpage.setLifecycleState(dock_web_view_mod.QWebEnginePage.LifecycleState.Frozen)
                         except Exception:
                             pass
-                    companion_logger.log("[Lifecycle Patch] WebEngine hidden in StackedWidget. Static screenshot active. CPU dropped to 0%!")
+                    companion_logger.log("[Lifecycle Patch] Overlay visible. WebEngine frozen. CPU dropped to 0%!")
                 except Exception as ex:
                     companion_logger.log(f"[Lifecycle Patch] Delayed capture freeze failed: {ex}")
 
@@ -110,7 +115,7 @@ def patch(dock_web_view_mod):
     def thaw_sidebar(sidebar):
         try:
             # Do nothing if already active
-            if sidebar.stacked_widget.currentWidget() == sidebar.webview:
+            if not sidebar.snapshot_label.isVisible():
                 return
                 
             companion_logger.log("[Lifecycle Patch] Thawing sidebar -> Warming up active WebEngine...")
@@ -122,14 +127,14 @@ def patch(dock_web_view_mod):
                 except Exception:
                     pass
             
-            # 2. Wait 80ms for the WebEngine to render its frame before swapping, eliminating transition flicker!
+            # 2. Wait 80ms for the WebEngine to render its frame before hiding the overlay, eliminating transition flicker!
             def complete_thaw():
                 try:
                     # Cancel the swap if the user has already hovered out
                     if not getattr(sidebar, "is_hovered", False) and not sidebar.is_responding:
                         companion_logger.log("[Lifecycle Patch] Thaw swap cancelled: User already left.")
                         return
-                    sidebar.stacked_widget.setCurrentWidget(sidebar.webview)
+                    sidebar.snapshot_label.hide()
                     companion_logger.log("[Lifecycle Patch] WebEngine visible and fully active!")
                 except Exception as ex:
                     companion_logger.log(f"[Lifecycle Patch] Complete thaw failed: {ex}")
@@ -240,6 +245,9 @@ def patch(dock_web_view_mod):
     original_runJavaScript = dock_web_view_mod.QWebEnginePage.runJavaScript
 
     def patched_runJavaScript(self, *args, **kwargs):
+        if not getattr(self, "_is_terminator_sidebar", False):
+            return original_runJavaScript(self, *args, **kwargs)
+
         js_code = args[0] if args else "None"
         snippet = js_code[:100].replace('\n', ' ') + ('...' if len(js_code) > 100 else '')
         
