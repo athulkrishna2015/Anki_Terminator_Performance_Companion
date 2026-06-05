@@ -1,5 +1,7 @@
 # Anki Terminator Companion
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D01W6NQT)
+
 An elegant, dynamic performance-optimization add-on for Anki. 
 
 This companion addon is designed to run seamlessly alongside the original **Anki Terminator V2 - ChatGPT DeepSeek Sidebar for Reviewer** (`1468920185`). By dynamically patching memory during Anki startup, it eliminates high-CPU bottlenecks completely **without modifying a single line of code in the original addon's directory**.
@@ -55,6 +57,23 @@ Anki_Terminator_Companion/ (Repo Root)
         ├── css_patch.py      # CSS optimization injection patch
         └── lifecycle_patch.py # Smart UI-freezing, hover-state, & stream monitoring
 ```
+
+## Configuration & Settings
+
+The companion add-on introduces a dedicated settings dialog inside Anki's Add-on Manager (accessible via **Tools > Add-ons > Select Anki Terminator Companion > Config**).
+
+### Tabs Overview:
+1. **General Settings**:
+   * **Enable Smart CPU Freezing (Lifecycle State)**: Toggles the dynamic freezing/thawing system for Gemini/ChatGPT.
+   * **Enable Ad-Blocker O(1) Suffix Match Optimization**: Toggles the fast suffix domain set lookup algorithm.
+   * **Inject CSS Gemini Animation Disabler**: Toggles the custom animation disabler styles.
+   * **Thaw Duration after Query**: Configures the duration in seconds that Gemini stays Active before freezing back after clicking any prompt buttons.
+2. **Performance Logs**:
+   * Displays thread-safe, real-time diagnostic and performance events from the companion.
+   * Includes handy buttons to **Copy Logs** to clipboard and **Clear Logs**.
+3. **Support**:
+   * Offers direct links and QR codes to support the creator (UPI, BTC, ETH, and Ko-fi links).
+   * Includes a checkbox option: `"I have supported this addon (Hide automatic update welcome)"` to disable the welcome screen popping up after future updates.
 
 ---
 
