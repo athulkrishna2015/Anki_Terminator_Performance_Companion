@@ -11,15 +11,18 @@ def apply_patches():
     except Exception as e:
         companion_logger.log(f"[Terminator Companion] AdBlocker patch failed: {e}")
 
-    # 2. Apply WebEngine and Lifecycle patches
+    # 2. Apply WebEngine, Lifecycle, and Context Menu patches
     try:
         dock_web_view_mod = importlib.import_module("1468920185.dock_web_view")
+        add_fields_mod = importlib.import_module("1468920185.context_menu.add_fields")
         from . import css_patch
         from . import lifecycle_patch
+        from . import context_menu_patch
         css_patch.patch(dock_web_view_mod)
         lifecycle_patch.patch(dock_web_view_mod)
+        context_menu_patch.patch(add_fields_mod)
     except Exception as e:
-        companion_logger.log(f"[Terminator Companion] Webview/Lifecycle patch failed: {e}")
+        companion_logger.log(f"[Terminator Companion] Webview/Lifecycle/Context Menu patch failed: {e}")
 
 # Apply immediately on module import
 apply_patches()

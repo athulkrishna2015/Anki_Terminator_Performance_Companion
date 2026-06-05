@@ -1,4 +1,4 @@
-# Anki Terminator Performance Companion
+# Anki Terminator Companion
 
 An elegant, dynamic performance-optimization add-on for Anki. 
 
@@ -24,12 +24,16 @@ This companion addon is designed to run seamlessly alongside the original **Anki
 * **The Problem**: High-CPU draw on Gemini's website due to continuous background shimmer animations, blur filters, and glow gradients.
 * **The Solution**: Dynamically injects highly optimized CSS when the page loads to disable background animations, transition effects, and intensive CSS blur/backdrop-filters globally.
 
+### 📝 4. Rich HTML Context Menu Paste Support (Preserves Formatting)
+* **The Problem**: Right-clicking in the sidebar to "Add selection to field" originally uses plain-text copy-pasting, stripping out all markdown, links, lists, bold text, italics, and image elements.
+* **The Solution**: Dynamically intercepts the context menu triggers to extract selection text as raw HTML using a specialized JavaScript range cloner. This allows you to append formatted answers directly into your Anki fields with all formatting and styling intact.
+
 ---
 
 ## Project Directory Structure
 
 ```
-Anki_Terminator_Performance_Companion/ (Repo Root)
+Anki_Terminator_Companion/ (Repo Root)
 ├── README.md                 # Main overview and optimization documentation (This file)
 ├── DEVELOPMENT.md            # Advanced developer guide (versioning, packaging, local setups)
 ├── bump.py                   # SemVer version bump utility
@@ -53,5 +57,5 @@ Anki_Terminator_Performance_Companion/ (Repo Root)
 ## How to Install and Test
 
 1. Ensure the original addon (`1468920185`) is installed.
-2. Link or place the `Anki_Terminator_Performance_Companion` source folder inside your Anki profile directory's `addons21` folder.
+2. Link or place the `Anki_Terminator_Companion` source folder inside your Anki profile directory's `addons21` folder.
 3. Start Anki. Open the addon settings panel to access the custom Configuration UI, enabling you to toggle features, adjust freeze-thaw sensitivity, and inspect logs in real time.

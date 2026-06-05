@@ -1,6 +1,6 @@
-# Anki Terminator Performance Companion - Developer Documentation
+# Anki Terminator Companion - Developer Documentation
 
-This repository contains the source code for the **Anki Terminator Performance Companion** add-on.
+This repository contains the source code for the **Anki Terminator Companion** add-on.
 
 This addon is designed to be installed alongside the original **Anki Terminator V2 - ChatGPT DeepSeek Sidebar for Reviewer** (`1468920185`). At startup, it dynamically patches the original addon in memory to eliminate high-CPU hotspots without modifying a single file in the original addon's directory.
 
@@ -9,7 +9,7 @@ This addon is designed to be installed alongside the original **Anki Terminator 
 ## Project Structure
 
 ```
-Anki_Terminator_Performance_Companion/ (Repo Root)
+Anki_Terminator_Companion/ (Repo Root)
 ├── addon/ (Addon Source)
 │   ├── __init__.py           # Entry point: performs in-memory monkey patching of 1468920185
 │   ├── manifest.json         # Core add-on metadata and configuration requirements
@@ -42,7 +42,7 @@ To test this addon, ensure that the original addon (`1468920185`) is installed i
 
 **Linux:**
 ```shell
-ln -s "$(pwd)/addon" ~/.local/share/Anki2/addons21/Anki_Terminator_Performance_Companion
+ln -s "$(pwd)/addon" ~/.local/share/Anki2/addons21/Anki_Terminator_Companion
 ```
 
 Restart Anki to automatically apply the optimizations. You will see confirmation logs in the terminal/stdout:
@@ -70,4 +70,4 @@ To package the addon for distribution on AnkiWeb:
 ```shell
 python make_ankiaddon.py
 ```
-This automatically bumps the patch version, ignores the build scripts (`bump.py`, `make_ankiaddon.py`, `DEVELOPMENT.md`), and outputs a timestamped `.ankiaddon` file in the root folder (e.g. `Anki_Terminator_Performance_Companion_v1.0.1_202606011830.ankiaddon`).
+This automatically bumps the patch version, ignores the build scripts (`bump.py`, `make_ankiaddon.py`, `DEVELOPMENT.md`), and outputs a timestamped `.ankiaddon` file in the root folder (e.g. `Anki_Terminator_Companion_v1.0.1_202606011830.ankiaddon`).

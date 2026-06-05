@@ -14,7 +14,7 @@ PATCH_TARGETS = [
 ]
 
 def load_companion_patches():
-    companion_logger.log("Initializing Anki Terminator Performance Companion...")
+    companion_logger.log("Initializing Anki Terminator Companion...")
     for target in PATCH_TARGETS:
         try:
             importlib.import_module(f".{target}", __name__)

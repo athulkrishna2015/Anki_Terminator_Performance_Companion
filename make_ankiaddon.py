@@ -14,7 +14,7 @@ from bump import (
 )
 
 # Configuration
-ADDON_NAME = "Anki_Terminator_Performance_Companion"
+ADDON_NAME = "Anki_Terminator_Companion"
 ADDON_DIR = "addon"
 
 def load_gitignore_patterns(root_dir: Path) -> list[str]:

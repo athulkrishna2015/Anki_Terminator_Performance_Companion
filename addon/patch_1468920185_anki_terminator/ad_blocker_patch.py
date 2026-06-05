@@ -30,7 +30,7 @@ def match_rules(url, pure_domains_set, path_rules_list):
 
 def patch(ad_blocker_mod):
     # Check if adblocker optimization is enabled
-    config = mw.addonManager.getConfig("Anki_Terminator_Performance_Companion") or {}
+    config = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
     if not config.get("enable_adblocker_optimization", True):
         companion_logger.log("[AdBlocker Patch] Ad-Blocker optimization is disabled in settings, skipping.")
         return
