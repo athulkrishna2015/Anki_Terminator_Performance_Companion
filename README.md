@@ -1,7 +1,5 @@
 # Anki Terminator Companion
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D01W6NQT)
-
 An elegant, dynamic performance-optimization add-on for Anki. 
 
 This companion addon is designed to run seamlessly alongside the original **Anki Terminator V2 - ChatGPT DeepSeek Sidebar for Reviewer** (`1468920185`). By dynamically patching memory during Anki startup, it eliminates high-CPU bottlenecks completely **without modifying a single line of code in the original addon's directory**.
@@ -82,3 +80,20 @@ The companion add-on introduces a dedicated settings dialog inside Anki's Add-on
 1. Ensure the original addon (`1468920185`) is installed.
 2. Link or place the `Anki_Terminator_Companion` source folder inside your Anki profile directory's `addons21` folder.
 3. Start Anki. Open the addon settings panel to access the custom Configuration UI, enabling you to toggle features, adjust freeze-thaw sensitivity, and inspect logs in real time.
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D01W6NQT)
+
+---
+
+## Changelog
+
+* **4a2b34e** (2026-06-05): Update README.md with configuration options and Ko-fi support badge
+* **a1d99f5** (2026-06-05): Document clipboard-free text injection in README, bump version to 1.3.0
+* **1552860** (2026-06-05): Implement clipboard-free text injection using execCommand to resolve clipboard paste race condition
+* **b0dd531** (2026-06-05): Rename add-on to Anki Terminator Companion, implement context menu rich paste patch, bump version to 1.2.0
+* **acd9321** (2026-06-02): Refactor config UI into modular tabs, add new QR Support tab, implement startup supporter welcome update check hook, bump version to 1.1.0
+* **2ff49de** (2026-06-02): Optimize runJavaScript targeting, fix loading layout screen, resolve mouse transition flicker, bump version to 1.0.2
+* **f5c7078** (2026-06-01): Release: version 1.0.0
+* **34ccf05** (2026-06-01): Refactor: global update of all naming references to Anki_Terminator_Performance_Companion
+* **2fa94d6** (2026-06-01): Docs: update DEVELOPMENT.md with new project structure and symlink command
+* **49b5b48** (2026-06-01): Refactor: rename addon folder and package to Anki_Terminator_Performance_Companion
