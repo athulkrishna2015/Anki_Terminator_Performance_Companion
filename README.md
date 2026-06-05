@@ -63,6 +63,13 @@ Please refer to [DEVELOPMENT.md](DEVELOPMENT.md) for details on project director
 
 ## Changelog
 
+### June 6, 2026 (v1.3.1)
+- **AI Chatbot MathJax & HTML Sanitization**:
+  - Added support for extracting and reconstructing LaTeX formulas from chatbot-rendered containers (supporting MathJax v2, MathJax v3, KaTeX, and Wikipedia formats) to standard Anki delimiters (`\( ... \)` and `\[ ... \]`).
+  - Resolved partial selection bugs by implementing a range-expansion logic that automatically captures the complete formula.
+  - Implemented strict HTML tag whitelist and attribute sanitization to strip all Angular scoping attributes, tracking data, and citation/footnote chips, ensuring only clean formatting is sent to Anki.
+  - Added context-menu action logs to the performance log viewer.
+
 ### June 5, 2026 (v1.3.0)
 - **Clipboard-Free Text Injection**: Patched the input insertion mechanism to inject queries directly via Chromium's native `document.execCommand('insertText')` API, completely avoiding system clipboard pollution and resolving clipboard paste race conditions.
 - **Support & Customization Settings**: Added Ko-fi support badges and detailed configuration settings descriptions.
