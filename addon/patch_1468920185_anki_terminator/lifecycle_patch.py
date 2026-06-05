@@ -274,19 +274,89 @@ def patch(dock_web_view_mod):
 
     dock_web_view_mod.QWebEnginePage.runJavaScript = patched_runJavaScript
 
-    # Hook ResizableWebView.auto_click_v2 to immediately thaw and start monitoring
+    # Hook ResizableWebView.auto_click_v2 to immediately thaw, start monitoring, and paste clipboard-free
     if hasattr(dock_web_view_mod.ResizableWebView, "auto_click_v2"):
-        original_auto_click_v2 = dock_web_view_mod.ResizableWebView.auto_click_v2
-        
-        def new_auto_click_v2(self, *args, **kwargs):
-            companion_logger.log("[Lifecycle Patch] auto_click_v2 triggered! Thawing sidebar and initiating response monitoring...")
+        def new_auto_click_v2(self, stop_button_class, class_name, prompt_text, button_class):
+            companion_logger.log("[Lifecycle Patch] auto_click_v2 triggered! Thawing sidebar and initiating response monitoring (Clipboard-Free)...")
             self.is_responding = True
             thaw_sidebar(self)
             start_response_monitoring(self)
-            return original_auto_click_v2(self, *args, **kwargs)
+
+            import json
+            js_prompt = json.dumps(prompt_text)
             
+            js_code = f"""
+            (function() {{
+                // 1. Click stop button if exists
+                var stop_button_class = {json.dumps(stop_button_class)};
+                if (stop_button_class && stop_button_class !== 'None') {{
+                    var stop_button = document.querySelector(stop_button_class);
+                    if (stop_button && !stop_button.disabled && stop_button.getAttribute('aria-disabled') !== 'true') {{
+                        stop_button.click();
+                    }}
+                }}
+
+                // 2. Focus and select input element
+                var selector = {json.dumps(class_name)};
+                const nodeList = document.querySelectorAll(selector);
+                const allElements = Array.from(nodeList);
+                let element = null;
+                let maxArea = -1;
+
+                allElements.forEach(eachElement => {{
+                    const width = eachElement.offsetWidth || 0;
+                    const height = eachElement.offsetHeight || 0;
+                    const area = width * height;
+                    if (area > maxArea) {{
+                        maxArea = area;
+                        element = eachElement;
+                    }}
+                }});
+
+                if (element) {{
+                    const eventOptions = {{ bubbles: true, cancelable: true, view: window }};
+                    element.dispatchEvent(new MouseEvent('mousedown', eventOptions));
+                    element.focus();
+                    element.dispatchEvent(new MouseEvent('mouseup', eventOptions));
+                    element.click();
+
+                    // 3. Write text using execCommand (safe & clipboard-free)
+                    try {{
+                        document.execCommand('selectAll', false, null);
+                        document.execCommand('insertText', false, {js_prompt});
+                    }} catch(e) {{
+                        // Fallback for elements that don't support execCommand
+                        element.value = {js_prompt};
+                        element.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                    }}
+
+                    // 4. Click submit button after a tiny delay to allow React state to sync
+                    var button_class = {json.dumps(button_class)};
+                    if (button_class && button_class !== 'None') {{
+                        setTimeout(function() {{
+                            var buttons = document.querySelectorAll(button_class);
+                            var targetButton = null;
+                            for (var i = 0; i < buttons.length; i++) {{
+                                var button = buttons[i];
+                                var style = window.getComputedStyle(button);
+                                var isVisible = style.display !== 'none' && button.offsetParent !== null && style.pointerEvents !== 'none';
+                                if (isVisible) {{
+                                    targetButton = button;
+                                    break;
+                                }}
+                            }}
+                            if (targetButton && !targetButton.disabled && targetButton.getAttribute('aria-disabled') !== 'true') {{
+                                targetButton.click();
+                            }}
+                        }}, 100);
+                    }}
+                }}
+            }})();
+            """
+            self.webview.page().runJavaScript(js_code, self.js_callback_v2_click)
+
         dock_web_view_mod.ResizableWebView.auto_click_v2 = new_auto_click_v2
-        companion_logger.log("[Lifecycle Patch] Successfully hooked ResizableWebView.auto_click_v2")
+        companion_logger.log("[Lifecycle Patch] Successfully hooked ResizableWebView.auto_click_v2 with clipboard-free injection.")
 
     companion_logger.log("[Lifecycle Patch] Successfully hooked ResizableWebView and runJavaScript for Smart UI-Freezing.")
 
