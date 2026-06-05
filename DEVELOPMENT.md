@@ -10,16 +10,30 @@ This addon is designed to be installed alongside the original **Anki Terminator 
 
 ```
 Anki_Terminator_Companion/ (Repo Root)
-├── addon/ (Addon Source)
-│   ├── __init__.py           # Entry point: performs in-memory monkey patching of 1468920185
-│   ├── manifest.json         # Core add-on metadata and configuration requirements
-│   └── VERSION               # Tracking file for the current SemVer version
-├── DEVELOPMENT.md            # This documentation file
-├── bump.py                   # Version auto-increment script
-└── make_ankiaddon.py         # Packaging script → produces the .ankiaddon release file
+├── DEVELOPMENT.md            # Advanced developer guide (This file)
+├── README.md                 # Main overview and user documentation
+├── bump.py                   # SemVer version bump utility
+├── make_ankiaddon.py         # Packaging script → produces the .ankiaddon release file
+└── addon/ (Addon Source)
+    ├── __init__.py           # Entry point: performs in-memory monkey patching of 1468920185
+    ├── manifest.json         # Core add-on metadata and configuration requirements
+    ├── config.json           # Default configuration settings
+    ├── config_ui.py          # Configuration UI orchestrator
+    ├── config_ui_general_tab.py # General settings UI tab
+    ├── config_ui_logs_tab.py # Live performance logs UI tab
+    ├── tab_support.py        # Supporter QR and links UI tab
+    ├── logger.py             # Thread-safe asynchronous logging worker
+    ├── VERSION               # Tracking file for the current SemVer version
+    ├── companion.log         # Real-time event log
+    └── patch_1468920185_anki_terminator/
+        ├── __init__.py       # Target patch orchestrator
+        ├── ad_blocker_patch.py # O(1) Suffix set lookup patches
+        ├── css_patch.py      # CSS optimization injection patch
+        └── lifecycle_patch.py # Smart UI-freezing, hover-state, & stream monitoring
 ```
 
 ---
+
 
 ## Optimization Architecture
 
@@ -37,21 +51,26 @@ The companion addon works by implementing runtime dynamic overrides (monkey patc
 
 ## Development Workflow
 
-### 1. Local Testing
-To test this addon, ensure that the original addon (`1468920185`) is installed in your Anki profile, and that the `addon` source folder is symlinked or placed inside your Anki addons directory.
+### 1. Local Setup & Testing
 
-**Linux:**
+To test this add-on locally:
+1. Ensure the original add-on (**Anki Terminator V2 - ChatGPT DeepSeek Sidebar for Reviewer**, ID `1468920185`) is installed in your Anki profile.
+2. Link or copy the `addon` directory into your Anki profile directory's `addons21` folder under the name `Anki_Terminator_Companion`.
+
+**Symlink Command (Linux):**
 ```shell
 ln -s "$(pwd)/addon" ~/.local/share/Anki2/addons21/Anki_Terminator_Companion
 ```
 
-Restart Anki to automatically apply the optimizations. You will see confirmation logs in the terminal/stdout:
+3. Restart Anki to automatically apply the memory patches. You will see confirmation logs in the terminal/stdout or in the companion log file:
 ```
 [Terminator Companion] Successfully patched AdBlocker interceptRequest for O(1) domain lookups!
 [Terminator Companion] Successfully patched CustomWebEnginePage.inject_javascript for Gemini optimization!
 ```
+4. Open the configuration dialog under **Tools > Add-ons > Anki Terminator Companion > Config** to verify tab controls, settings, and logs.
 
 ---
+
 
 ## Building and Versioning
 

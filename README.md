@@ -1,5 +1,7 @@
 # Anki Terminator Companion
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D01W6NQT)
+
 An elegant, dynamic performance-optimization add-on for Anki. 
 
 This companion addon is designed to run seamlessly alongside the original **Anki Terminator V2 - ChatGPT DeepSeek Sidebar for Reviewer** (`1468920185`). By dynamically patching memory during Anki startup, it eliminates high-CPU bottlenecks completely **without modifying a single line of code in the original addon's directory**.
@@ -34,28 +36,6 @@ This companion addon is designed to run seamlessly alongside the original **Anki
 
 ---
 
-## Project Directory Structure
-
-```
-Anki_Terminator_Companion/ (Repo Root)
-├── README.md                 # Main overview and optimization documentation (This file)
-├── DEVELOPMENT.md            # Advanced developer guide (versioning, packaging, local setups)
-├── bump.py                   # SemVer version bump utility
-├── make_ankiaddon.py         # Packages the directory into a production .ankiaddon release
-└── addon/ (Addon Source)
-    ├── __init__.py           # Pre-load orchestrator; dynamically applies memory patches
-    ├── manifest.json         # Addon declaration
-    ├── config.json           # Optimization features configuration
-    ├── config_ui.py          # Modern settings GUI dialog inside Anki
-    ├── logger.py             # Thread-safe asynchronous logging worker
-    ├── companion.log         # Real-time event log
-    └── patch_1468920185_anki_terminator/
-        ├── __init__.py       # Target patch orchestrator
-        ├── ad_blocker_patch.py # O(1) Suffix set lookup patches
-        ├── css_patch.py      # CSS optimization injection patch
-        └── lifecycle_patch.py # Smart UI-freezing, hover-state, & stream monitoring
-```
-
 ## Configuration & Settings
 
 The companion add-on introduces a dedicated settings dialog inside Anki's Add-on Manager (accessible via **Tools > Add-ons > Select Anki Terminator Companion > Config**).
@@ -75,25 +55,29 @@ The companion add-on introduces a dedicated settings dialog inside Anki's Add-on
 
 ---
 
-## How to Install and Test
+## Development & Local Installation
 
-1. Ensure the original addon (`1468920185`) is installed.
-2. Link or place the `Anki_Terminator_Companion` source folder inside your Anki profile directory's `addons21` folder.
-3. Start Anki. Open the addon settings panel to access the custom Configuration UI, enabling you to toggle features, adjust freeze-thaw sensitivity, and inspect logs in real time.
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D01W6NQT)
+Please refer to [DEVELOPMENT.md](DEVELOPMENT.md) for details on project directory structure, local setup, manual testing, versioning, and building release packages.
 
 ---
 
 ## Changelog
 
-* **4a2b34e** (2026-06-05): Update README.md with configuration options and Ko-fi support badge
-* **a1d99f5** (2026-06-05): Document clipboard-free text injection in README, bump version to 1.3.0
-* **1552860** (2026-06-05): Implement clipboard-free text injection using execCommand to resolve clipboard paste race condition
-* **b0dd531** (2026-06-05): Rename add-on to Anki Terminator Companion, implement context menu rich paste patch, bump version to 1.2.0
-* **acd9321** (2026-06-02): Refactor config UI into modular tabs, add new QR Support tab, implement startup supporter welcome update check hook, bump version to 1.1.0
-* **2ff49de** (2026-06-02): Optimize runJavaScript targeting, fix loading layout screen, resolve mouse transition flicker, bump version to 1.0.2
-* **f5c7078** (2026-06-01): Release: version 1.0.0
-* **34ccf05** (2026-06-01): Refactor: global update of all naming references to Anki_Terminator_Performance_Companion
-* **2fa94d6** (2026-06-01): Docs: update DEVELOPMENT.md with new project structure and symlink command
-* **49b5b48** (2026-06-01): Refactor: rename addon folder and package to Anki_Terminator_Performance_Companion
+### June 5, 2026 (v1.3.0)
+- **Clipboard-Free Text Injection**: Patched the input insertion mechanism to inject queries directly via Chromium's native `document.execCommand('insertText')` API, completely avoiding system clipboard pollution and resolving clipboard paste race conditions.
+- **Support & Customization Settings**: Added Ko-fi support badges and detailed configuration settings descriptions.
+
+### June 5, 2026 (v1.2.0)
+- **Rename & Branding**: Renamed add-on from "Anki Terminator Performance Companion" to "Anki Terminator Companion".
+- **Rich HTML Context Menu Paste**: Intercepted context menu triggers to extract selection text as raw HTML using a specialized JavaScript range cloner, allowing formatted text insertion into Anki fields.
+
+### June 2, 2026 (v1.1.0)
+- **Config UI Improvements**: Refactored settings dialog into a modular tabbed layout and added a new QR Support tab.
+- **Supporter Welcome Hook**: Implemented a supporter status check hook on startup.
+
+### June 2, 2026 (v1.0.2)
+- **WebView Performance**: Optimized `runJavaScript` targeting, fixed loading layout screen representation, and resolved mouse hover transition flickers.
+
+### June 1, 2026 (v1.0.0)
+- **Initial Release**: Released version 1.0.0 featuring core optimizations: smart CPU freezing (0% idle CPU), O(1) suffix ad-blocker lookup, and CSS animation/transition disabler.
+
