@@ -63,6 +63,10 @@ Please refer to [DEVELOPMENT.md](DEVELOPMENT.md) for details on project director
 
 ## Changelog
 
+### June 6, 2026 (v1.3.2)
+- **AI-Hints Preservation**:
+  - Patched note saving to detect and keep AI-Hints JSON blocks at the absolute end of the field when appending selection text via the right-click menu.
+
 ### June 6, 2026 (v1.3.1)
 - **AI Chatbot MathJax & HTML Sanitization**:
   - Added support for extracting and reconstructing LaTeX formulas from chatbot-rendered containers (supporting MathJax v2, MathJax v3, KaTeX, and Wikipedia formats) to standard Anki delimiters (`\( ... \)` and `\[ ... \]`).
