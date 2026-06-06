@@ -218,5 +218,36 @@ def patch(add_fields_mod):
 
         webview.page().runJavaScript(js_code, callback)
 
+    def patched_add_text_to_card(note, field, selected, col):
+        import re
+        pattern = re.compile(
+            r'(?:[\s\n\r]|<br\s*/?>|&nbsp;|<div>\s*</div>)*<div\b[^>]*class=["\'][^"\']*(?:ai-hints-json|ai-hints-container)[^"\']*["\'][^>]*>.*?</div>(?:[\s\n\r]|<br\s*/?>|&nbsp;|<div>\s*</div>)*',
+            flags=re.DOTALL | re.IGNORECASE,
+        )
+        original_field_val = note[field]
+        
+        # Extract all AI hints blocks
+        hints_blocks = [m.group(0) for m in re.finditer(pattern, original_field_val)]
+        hints_block = "".join(hints_blocks)
+        
+        # Remove the blocks to get the base text
+        base_text = re.sub(pattern, "", original_field_val)
+        
+        add_br = ""
+        if base_text.strip() != "":
+            add_br = "<br>"
+            
+        selected_formatted = selected.replace("\n", "<br>")
+        new_base_text = base_text + add_br + selected_formatted
+        
+        if hints_block:
+            note[field] = new_base_text + hints_block
+        else:
+            note[field] = new_base_text
+            
+        return col.update_note(note)
+
     add_fields_mod.context_menu = patched_context_menu
-    companion_logger.log("[Context Menu Patch] Successfully patched context_menu to retrieve selected HTML!")
+    add_fields_mod._add_text_to_card = patched_add_text_to_card
+    companion_logger.log("[Context Menu Patch] Successfully patched context_menu and _add_text_to_card!")
+
