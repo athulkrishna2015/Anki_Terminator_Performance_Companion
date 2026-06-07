@@ -2,5 +2,10 @@
     "enable_lifecycle_freezing": true,
     "enable_adblocker_optimization": true,
     "enable_css_optimization": true,
-    "thaw_duration_seconds": 30
+    "enable_html_cleanup": true,
+    "enable_image_pasting": true,
+    "enable_ai_hints_optimization": true,
+    "enable_right_click_hints_preservation": true,
+    "thaw_duration_seconds": 30,
+    "send_multiple_fields": false
 }

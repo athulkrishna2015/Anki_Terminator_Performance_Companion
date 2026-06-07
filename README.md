@@ -63,6 +63,21 @@ Please refer to [DEVELOPMENT.md](DEVELOPMENT.md) for details on project director
 
 ## Changelog
 
+### June 7, 2026 (v1.3.3)
+- **Idle CPU Optimization & Busy Loop Mitigation**:
+  - Implemented visibility-aware checks for the background `findAndClickButton` interval (`setInterval`), suspending it when the sidebar is hidden/inactive.
+  - Patched `ResizableWebView.handle_audio_state` and the sidebar freeze routine to stop active audio recording timers (`stop_timer`) when the sidebar is not visible or currently frozen.
+  - Optimized the AI-Hints `clean_ai_hints_from_text` routine with a fast `O(n)` substring pre-check, preventing expensive regular expression scans on every field lookup when no hints are present.
+- **HTML Stripping for AI Prompts**:
+  - Automatically strips raw HTML tags (such as `<br>`, `<hr>`, `<div>`, `<span>`) from card field texts before sending them to the AI, ensuring only clean text and LaTeX/MathJax expressions are transmitted.
+- **Automatic Image Clipboard Pasting**:
+  - Automatically detects and extracts any referenced card images (`<img>` tags) in the field. Loads and places the image on the system clipboard, focuses the AI input area, and triggers a native WebEngine paste event to upload the image to the chatbot.
+  - Automatically backs up and restores the user's original system clipboard immediately after pasting, preserving the clipboard state.
+- **Multiple Fields Support**:
+  - Added support for concatenating and sending all non-empty card fields to the AI, rather than only the priority field.
+  - Fully configurable via the "Fields" tab in both the main Anki Terminator settings dialog and the Terminator Companion config UI (disabled by default).
+  - Automatically filters out fields that contain only HTML boilerplate or whitespace to ensure clean transmission.
+
 ### June 6, 2026 (v1.3.2)
 - **AI-Hints Preservation**:
   - Patched note saving to detect and keep AI-Hints JSON blocks at the absolute end of the field when appending selection text via the right-click menu.

@@ -49,6 +49,13 @@ class CompanionConfigDialog(QDialog, SupportTabMixin):
         self.config.update(settings)
         
         mw.addonManager.writeConfig(__name__.split(".")[0], self.config)
+        
+        # Sync to Anki Terminator (1468920185) config
+        send_multiple = settings.get("send_multiple_fields", False)
+        anki_terminator_config = mw.addonManager.getConfig("1468920185") or {}
+        anki_terminator_config["send_multiple_fields"] = send_multiple
+        mw.addonManager.writeConfig("1468920185", anki_terminator_config)
+        
         QMessageBox.information(self, "Success", "Settings saved successfully!\nPlease restart Anki for changes to take effect.")
         self.accept()
         

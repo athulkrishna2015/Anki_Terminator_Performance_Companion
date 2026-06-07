@@ -29,11 +29,7 @@ def match_rules(url, pure_domains_set, path_rules_list):
     return False
 
 def patch(ad_blocker_mod):
-    # Check if adblocker optimization is enabled
-    config = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
-    if not config.get("enable_adblocker_optimization", True):
-        companion_logger.log("[AdBlocker Patch] Ad-Blocker optimization is disabled in settings, skipping.")
-        return
+    original_intercept_request = ad_blocker_mod.AdBlocker.interceptRequest
 
     # 1. Redefine load_ad_domains_from_easylist
     def optimized_load_ad_domains(path=ad_blocker_mod.easylist_path):
@@ -98,6 +94,9 @@ def patch(ad_blocker_mod):
 
     # Redefine interceptRequest
     def optimized_intercept_request(self, info: QWebEngineUrlRequestInfo):
+        config = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+        if not config.get("enable_adblocker_optimization", True):
+            return original_intercept_request(self, info)
         try:
             url = info.requestUrl().toString()
             first_party_url = info.firstPartyUrl().toString()

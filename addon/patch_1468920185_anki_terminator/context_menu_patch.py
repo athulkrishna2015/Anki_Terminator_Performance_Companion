@@ -5,7 +5,15 @@ from ..logger import companion_logger
 def patch(add_fields_mod):
     companion_logger.log("[Context Menu Patch] Patching context_menu for rich/HTML paste support...")
 
+    original_context_menu = add_fields_mod.context_menu
+    original_add_text_to_card = add_fields_mod._add_text_to_card
+
     def patched_context_menu(note, webview, field, *args, **kwargs):
+        from aqt import mw
+        cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+        if not cfg.get("enable_right_click_hints_preservation", True):
+            return original_context_menu(note, webview, field, *args, **kwargs)
+
         companion_logger.log(f"[Context Menu] Action triggered: send selection to field '{field}'")
         # JavaScript snippet to extract the selected HTML content preserving styling/formatting
         # and converting MathJax/LaTeX to Anki-style \(...\) and \[...\] delimiters.
@@ -219,6 +227,11 @@ def patch(add_fields_mod):
         webview.page().runJavaScript(js_code, callback)
 
     def patched_add_text_to_card(note, field, selected, col):
+        from aqt import mw
+        cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+        if not cfg.get("enable_right_click_hints_preservation", True):
+            return original_add_text_to_card(note, field, selected, col)
+
         import re
         pattern = re.compile(
             r'(?:[\s\n\r]|<br\s*/?>|&nbsp;|<div>\s*</div>)*<div\b[^>]*class=["\'][^"\']*(?:ai-hints-json|ai-hints-container)[^"\']*["\'][^>]*>.*?</div>(?:[\s\n\r]|<br\s*/?>|&nbsp;|<div>\s*</div>)*',

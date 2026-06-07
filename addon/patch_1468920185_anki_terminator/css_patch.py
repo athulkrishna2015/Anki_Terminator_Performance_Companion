@@ -24,18 +24,17 @@ def inject_gemini_performance_css(page: QWebEnginePage):
     companion_logger.log("CSS patch injected successfully (Gemini animations/transitions disabled)")
 
 def patch(dock_web_view_mod):
-    # Check if CSS optimization is enabled
-    config = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
-    if not config.get("enable_css_optimization", True):
-        companion_logger.log("CSS animation patch is disabled in settings, skipping.")
-        return
-
     original_inject = dock_web_view_mod.ResizableWebView.inject_javascript
 
     def patched_inject(self):
         # Call original ChatGPT check
         original_inject(self)
         
+        # Check if CSS optimization is enabled dynamically
+        config = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+        if not config.get("enable_css_optimization", True):
+            return
+
         # Companion optimization for Gemini
         addon_config = mw.addonManager.getConfig("1468920185")
         if addon_config and addon_config.get("now_AI_type") == "Google_Bard":
