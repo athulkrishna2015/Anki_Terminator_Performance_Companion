@@ -38,9 +38,9 @@ This companion addon is designed to run seamlessly alongside the original **Anki
 * **The Problem**: Card fields sent to the AI often contain extensive HTML layout tag boilerplate (`<br>`, `<div>`, `<span style="...">`), which wastes token limits and confuses LLMs.
 * **The Solution**: Automatically parses and strips all raw HTML tags from prompts, preserving clean text and raw LaTeX/MathJax expressions (`\(...\)` and `\[...\]`) for optimal AI processing.
 
-### 🖼️ 7. Automatic Image Clipboard Pasting
-* **The Problem**: If a card has an image (`<img>`), users had to manually download, copy, and upload the image to Chat GPT/Gemini.
-* **The Solution**: Automatically detects image references on the current card, copies the image from Anki's media folder directly to the clipboard, focuses the AI textbox, pastes it, and delays the click action by `1200ms` so the image upload completes before submitting.
+### ⚡ 7. Instant Config Access (Header Button)
+* **The Problem**: To change companion settings, users had to navigate through the Add-on Manager, which is slow during active study sessions.
+* **The Solution**: Injects a custom **"C" button** directly into the sidebar header toolbar (next to the settings cogwheel). Clicking it instantly opens the Terminator Companion settings dialog.
 
 ### 🗃️ 8. Multiple Fields Support
 * **The Problem**: Original sidebar only reads the single designated priority field.
@@ -58,7 +58,6 @@ The companion add-on introduces a dedicated settings dialog inside Anki's Add-on
    * **Enable Ad-Blocker O(1) Suffix Match Optimization**: Toggles the fast suffix domain set lookup algorithm.
    * **Inject CSS Gemini Animation Disabler**: Toggles the custom animation disabler styles.
    * **Enable HTML Stripping for AI Prompts**: Toggles stripping of HTML tags from prompts (preserves math).
-   * **Enable Automatic Image Clipboard Pasting**: Toggles copying and pasting of card images to the AI input area.
    * **Enable AI-Hints O(n) Regex Bypass Optimization**: Toggles fast-path rendering when no AI hints are present.
    * **Enable AI-Hints Context Menu Preservation**: Toggles safety check when appending right-click selections.
    * **Send Multiple Fields to AI**: Toggles sending all non-empty fields instead of just the priority field (configurable in both companion config and original Terminator "Fields" tab).
@@ -79,6 +78,18 @@ Please refer to [DEVELOPMENT.md](DEVELOPMENT.md) for details on project director
 ---
 
 ## Changelog
+
+### June 7, 2026 (v1.4.0)
+- **Instant Config Access (Header Button)**:
+  - Injected a new **"C" button** in the sidebar header next to the existing settings cogwheel.
+  - Provides immediate access to the companion settings dialog during study sessions.
+- **Improved Text Detection & Stability**:
+  - Refactored `patched_get_field_text` to correctly fall back to the original add-on logic, resolving "empty text window" issues.
+  - Refined `is_responding` state management to only trigger on explicit prompt submissions, preventing interference with background JS calls.
+- **HTML Cleanup Fallback**:
+  - Enhanced the HTML stripper with a robust regex-based fallback to ensure text is always captured even if the primary parser encounters edge cases.
+- **Removed Experimental Features**:
+  - Reverted experimental image pasting and regex-based `runJavaScript` optimizations to prioritize core stability and text detection accuracy.
 
 ### June 7, 2026 (v1.3.3)
 - **Idle CPU Optimization & Busy Loop Mitigation**:
