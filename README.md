@@ -34,6 +34,18 @@ This companion addon is designed to run seamlessly alongside the original **Anki
 * **The Problem**: Original prompt inputs relied on system clipboard copy-paste actions with timers. Lag spikes often caused the webview to paste the user's restored original clipboard data instead of the prompt text, polluting their clipboard history.
 * **The Solution**: Patches the input insertion mechanism to inject queries directly via Chromium's native `document.execCommand('insertText')` API. It leaves your system clipboard completely untouched and guarantees instant, race-condition-free pasting across all AI platforms.
 
+### 🧹 6. HTML Stripping for AI Prompts (LaTeX Clean)
+* **The Problem**: Card fields sent to the AI often contain extensive HTML layout tag boilerplate (`<br>`, `<div>`, `<span style="...">`), which wastes token limits and confuses LLMs.
+* **The Solution**: Automatically parses and strips all raw HTML tags from prompts, preserving clean text and raw LaTeX/MathJax expressions (`\(...\)` and `\[...\]`) for optimal AI processing.
+
+### 🖼️ 7. Automatic Image Clipboard Pasting
+* **The Problem**: If a card has an image (`<img>`), users had to manually download, copy, and upload the image to Chat GPT/Gemini.
+* **The Solution**: Automatically detects image references on the current card, copies the image from Anki's media folder directly to the clipboard, focuses the AI textbox, pastes it, and delays the click action by `1200ms` so the image upload completes before submitting.
+
+### 🗃️ 8. Multiple Fields Support
+* **The Problem**: Original sidebar only reads the single designated priority field.
+* **The Solution**: Allows concatenating and sending all non-empty card fields to the AI, formatted clearly as `FieldName: FieldValue`. It automatically filters out empty fields and fields containing only boilerplate spaces or tags.
+
 ---
 
 ## Configuration & Settings
@@ -45,6 +57,11 @@ The companion add-on introduces a dedicated settings dialog inside Anki's Add-on
    * **Enable Smart CPU Freezing (Lifecycle State)**: Toggles the dynamic freezing/thawing system for Gemini/ChatGPT.
    * **Enable Ad-Blocker O(1) Suffix Match Optimization**: Toggles the fast suffix domain set lookup algorithm.
    * **Inject CSS Gemini Animation Disabler**: Toggles the custom animation disabler styles.
+   * **Enable HTML Stripping for AI Prompts**: Toggles stripping of HTML tags from prompts (preserves math).
+   * **Enable Automatic Image Clipboard Pasting**: Toggles copying and pasting of card images to the AI input area.
+   * **Enable AI-Hints O(n) Regex Bypass Optimization**: Toggles fast-path rendering when no AI hints are present.
+   * **Enable AI-Hints Context Menu Preservation**: Toggles safety check when appending right-click selections.
+   * **Send Multiple Fields to AI**: Toggles sending all non-empty fields instead of just the priority field (configurable in both companion config and original Terminator "Fields" tab).
    * **Thaw Duration after Query**: Configures the duration in seconds that Gemini stays Active before freezing back after clicking any prompt buttons.
 2. **Performance Logs**:
    * Displays thread-safe, real-time diagnostic and performance events from the companion.
