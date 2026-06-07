@@ -31,10 +31,6 @@ class GeneralTab(QWidget):
         self.html_cleanup_chk.setChecked(self.config.get("enable_html_cleanup", True))
         self.html_cleanup_chk.setToolTip("Automatically strips HTML formatting from card fields before sending prompts to the AI (preserves LaTeX).")
 
-        self.image_pasting_chk = QCheckBox("Enable Automatic Image Clipboard Pasting")
-        self.image_pasting_chk.setChecked(self.config.get("enable_image_pasting", True))
-        self.image_pasting_chk.setToolTip("Automatically copies referenced card images to the clipboard and pastes them to the AI input area.")
-
         self.ai_hints_opt_chk = QCheckBox("Enable AI-Hints O(n) Regex Bypass Optimization")
         self.ai_hints_opt_chk.setChecked(self.config.get("enable_ai_hints_optimization", True))
         self.ai_hints_opt_chk.setToolTip("Speeds up card rendering by short-circuiting expensive AI-Hints clean regex scans when no hints are present.")
@@ -53,7 +49,6 @@ class GeneralTab(QWidget):
         group_layout.addWidget(self.adblocker_chk)
         group_layout.addWidget(self.css_chk)
         group_layout.addWidget(self.html_cleanup_chk)
-        group_layout.addWidget(self.image_pasting_chk)
         group_layout.addWidget(self.ai_hints_opt_chk)
         group_layout.addWidget(self.right_click_hints_chk)
         group_layout.addWidget(self.send_multiple_chk)
@@ -78,7 +73,6 @@ class GeneralTab(QWidget):
             "enable_adblocker_optimization": self.adblocker_chk.isChecked(),
             "enable_css_optimization": self.css_chk.isChecked(),
             "enable_html_cleanup": self.html_cleanup_chk.isChecked(),
-            "enable_image_pasting": self.image_pasting_chk.isChecked(),
             "enable_ai_hints_optimization": self.ai_hints_opt_chk.isChecked(),
             "enable_right_click_hints_preservation": self.right_click_hints_chk.isChecked(),
             "thaw_duration_seconds": self.thaw_sb.value(),
