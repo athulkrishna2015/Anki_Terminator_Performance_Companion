@@ -79,6 +79,11 @@ Please refer to [DEVELOPMENT.md](DEVELOPMENT.md) for details on project director
 
 ## Changelog
 
+### June 7, 2026 (v1.4.1)
+- **Fixed Button Race Condition**:
+  - Added a 200ms lifecycle-aware delay when clicking AI prompt buttons while the sidebar is frozen.
+  - This ensures Chromium has transitioned from `Frozen` to `Active` state before executing the prompt injection, resolving the issue where buttons occasionally had to be pressed twice.
+
 ### June 7, 2026 (v1.4.0)
 - **Instant Config Access (Header Button)**:
   - Injected a new **"C" button** in the sidebar header next to the existing settings cogwheel.

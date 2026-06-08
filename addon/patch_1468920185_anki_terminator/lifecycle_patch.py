@@ -345,9 +345,19 @@ def patch(dock_web_view_mod):
         
         def new_auto_click_v2(self, *args, **kwargs):
             self.is_responding = True
+            # Check if frozen BEFORE thawing
+            was_frozen = hasattr(self, "snapshot_label") and self.snapshot_label.isVisible()
+            
             thaw_sidebar(self)
             start_response_monitoring(self)
-            return original_auto_click_v2(self, *args, **kwargs)
+            
+            if was_frozen:
+                # If we were frozen, we must delay the JS execution to give Chromium
+                # enough time to fully resume the lifecycle state from 'Frozen' to 'Active'.
+                # Otherwise, the runJavaScript call might be silently ignored.
+                QTimer.singleShot(200, lambda: original_auto_click_v2(self, *args, **kwargs))
+            else:
+                return original_auto_click_v2(self, *args, **kwargs)
             
         dock_web_view_mod.ResizableWebView.auto_click_v2 = new_auto_click_v2
 
