@@ -92,6 +92,15 @@ Please refer to [DEVELOPMENT.md](DEVELOPMENT.md) for details on project director
 
 ## Changelog
 
+### June 10, 2026 (v1.6.1)
+- **UI Stability & Transition Fixes**:
+  - Refined **Persistent View** to eliminate white/blank screens during navigation using action-based pre-capturing and buffered hiding.
+  - Moved the **Sleek Progress Bar** to the absolute top of the sidebar for a more native browser feel.
+  - Implemented aggressive, multi-stage suppression of original addon loading screens, specifically targeting branding elements to ensure a clean UI.
+- **Enhanced Configuration**:
+  - Added new settings toggles to enable/disable **Sleek Progress Bar** and **Persistent View** independently.
+- **Visual Refinement**: Improved Z-order layering to ensure progress indicators and snapshots stay correctly stacked during layout shifts.
+
 ### June 9, 2026 (v1.6.0)
 - **Configuration & Installation Fix**: Fixed a bug where 'Wiki' and 'Donate' buttons were not hidden when unchecked, caused by a hardcoded package name constraint. Configuration paths are now dynamically resolved (`__name__.split(".")[0]`), ensuring preferences are correctly applied regardless of the installation directory name.
 - **Full Browser Integration**:

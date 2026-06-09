@@ -84,18 +84,20 @@ def patch(dock_web_view_mod):
         self.stable_checks = 0
         self.is_hovered = False
         # Create static screenshot label overlaying the webview
-        self.snapshot_label = QLabel(self.webview)
+        self.snapshot_label = QLabel(self)
         self.snapshot_label.setScaledContents(True)
         self.snapshot_label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.snapshot_label.setStyleSheet("background-color: #1a1a1a;") # Match Anki dark theme
         self.snapshot_label.hide()
         
         # Sync snapshot label geometry on resize
         original_webview_resize = self.webview.resizeEvent
         def new_webview_resize(event):
             if hasattr(self, "snapshot_label") and self.snapshot_label:
-                self.snapshot_label.setGeometry(self.webview.rect())
+                self.snapshot_label.setGeometry(self.webview.geometry())
             if hasattr(self, "progress_bar") and self.progress_bar:
-                self.progress_bar.setGeometry(0, 0, self.webview.width(), 2)
+                # Progress bar always at absolute top, full width
+                self.progress_bar.setGeometry(0, 0, self.width(), 2)
             if original_webview_resize:
                 original_webview_resize(event)
             else:
@@ -136,25 +138,42 @@ def patch(dock_web_view_mod):
         self._focus_filter = FocusFilter(self.address_bar)
         self.address_bar.installEventFilter(self._focus_filter)
         
+        # Helper to capture snapshot for persistent view
+        def capture_persistent_snapshot():
+            cfg = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
+            if not cfg.get("enable_persistent_view", True):
+                return
+            if hasattr(self, "snapshot_label") and self.snapshot_label:
+                try:
+                    pixmap = self.webview.grab()
+                    if not pixmap.isNull() and pixmap.height() > 10:
+                        self.snapshot_label.setPixmap(pixmap)
+                        self.snapshot_label.setGeometry(self.webview.geometry())
+                        companion_logger.log("[Lifecycle Patch] Pre-captured snapshot for persistent view.")
+                except: pass
+
         def handle_reload():
+            capture_persistent_snapshot()
             # Reload page and clear history to prevent back/forward navigation
             self.webview.reload()
             if self.webview.history():
                 self.webview.history().clear()
                 
         def handle_home():
+            capture_persistent_snapshot()
             if hasattr(self, "home_url") and self.home_url:
                 self.webview.load(QUrl(self.home_url))
                 if self.webview.history():
                     self.webview.history().clear()
                 
-        self.btn_back.clicked.connect(self.webview.back)
-        self.btn_forward.clicked.connect(self.webview.forward)
+        self.btn_back.clicked.connect(lambda: (capture_persistent_snapshot(), self.webview.back()))
+        self.btn_forward.clicked.connect(lambda: (capture_persistent_snapshot(), self.webview.forward()))
         self.btn_reload.clicked.connect(handle_reload)
         self.btn_home.clicked.connect(handle_home)
         
         def handle_return_pressed():
             if self.address_bar.hasFocus():
+                capture_persistent_snapshot()
                 # Clear history when a new URL or search is entered manually
                 if self.webview.history():
                     self.webview.history().clear()
@@ -162,10 +181,10 @@ def patch(dock_web_view_mod):
                 
         self.address_bar.returnPressed.connect(handle_return_pressed)
         
-        self.progress_bar = QProgressBar(self.webview)
+        self.progress_bar = QProgressBar(self)
         self.progress_bar.setFixedHeight(2)
         self.progress_bar.setTextVisible(False)
-        self.progress_bar.setStyleSheet("QProgressBar { border: none; background: transparent; } QProgressBar::chunk { background-color: #2196F3; }")
+        self.progress_bar.setStyleSheet("QProgressBar { border: none; background: transparent !important; } QProgressBar::chunk { background-color: #2196F3; }")
         self.progress_bar.hide()
         
         # Hook loading signals
@@ -173,35 +192,89 @@ def patch(dock_web_view_mod):
         self.webview.urlChanged.connect(lambda u: self.address_bar.setText(u.toString()))
         
         def on_load_started():
-            if hasattr(self, "progress_bar"):
+            companion_logger.log("[Lifecycle Patch] webview.loadStarted triggered.")
+            cfg = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
+            
+            # Immediately try to kill original loading screen before it draws
+            hide_original_loading(self)
+            
+            # Persistent View: If link click (not button), grab now if possible
+            if cfg.get("enable_persistent_view", True) and hasattr(self, "snapshot_label"):
+                if not self.snapshot_label.isVisible():
+                    capture_persistent_snapshot()
+                
+                if self.snapshot_label.pixmap() and not self.snapshot_label.pixmap().isNull():
+                    self.snapshot_label.show()
+                    self.snapshot_label.raise_()
+                    companion_logger.log("[Lifecycle Patch] Persistent view snapshot shown.")
+                else:
+                    # If no snapshot, show black screen to prevent white flash
+                    self.snapshot_label.show()
+                    self.snapshot_label.raise_()
+                    companion_logger.log("[Lifecycle Patch] No snapshot available; showing black screen.")
+
+            if cfg.get("enable_progress_bar", True) and hasattr(self, "progress_bar"):
                 self.progress_bar.setValue(0)
                 self.progress_bar.show()
                 self.progress_bar.raise_()
-            # Unfreeze sidebar to allow native browser rendering while loading
-            if hasattr(self, "snapshot_label") and self.snapshot_label:
-                self.snapshot_label.hide()
-            hide_original_loading(self)
+            
+            # Keep killing original loading screen periodically during load
+            QTimer.singleShot(100, lambda: hide_original_loading(self))
+            QTimer.singleShot(500, lambda: hide_original_loading(self))
             
         self.webview.loadStarted.connect(on_load_started)
 
         # Try to suppress original loading overlay immediately and periodically
         def hide_original_loading(sidebar):
             try:
-                # Recursively look for anything that looks like a loading screen
+                # Find ALL widgets that are children of the sidebar
                 for child in sidebar.findChildren(QWidget):
+                    # NEVER hide our own components or critical UI parts
+                    if child in [getattr(sidebar, "progress_bar", None), getattr(sidebar, "snapshot_label", None)]:
+                        continue
+                    if child in [sidebar.btn_back, sidebar.btn_forward, sidebar.btn_reload, sidebar.btn_home, sidebar.address_bar, sidebar.search_control]:
+                        continue
+                    if child == sidebar.webview:
+                        continue
+                    
+                    classname = child.metaObject().className().lower()
+                    # Protect main UI types unless they are explicitly named 'loading'
+                    if any(c in classname for c in ["qtoolbar", "qmenubar", "qlineedit", "qpushbutton", "qscrollbar"]):
+                        # Only hide if the name EXPLICITLY contains loading (not just 'bar' or 'wait')
+                        oname = child.objectName().lower()
+                        if "loading" not in oname:
+                            continue
+                    
                     oname = child.objectName().lower()
                     text = ""
                     if hasattr(child, "text") and callable(child.text):
                         try: text = child.text().lower()
                         except: pass
                     
-                    if "loading" in oname or "loading" in text or "spinner" in oname:
+                    # Keywords from the screenshot and common loading patterns
+                    keywords = ["loading", "spinner", "overlay", "wait", "mask", "shigeyuki", "patron", "created by", "become a"]
+                    is_loading = any(k in oname or k in text or k in classname for k in keywords)
+                    
+                    # Specifically target any other progress bars or large labels with images in webview area
+                    if not is_loading:
+                        if classname == "qprogressbar":
+                            is_loading = True
+                        elif isinstance(child, QLabel):
+                            if (child.pixmap() and not child.pixmap().isNull()) or child.movie():
+                                if child.width() > 50 and child.height() > 50:
+                                    if sidebar.webview.geometry().intersects(child.geometry()):
+                                        is_loading = True
+                    
+                    if is_loading:
+                        if not hasattr(sidebar, "_logged_loading_hide"):
+                            companion_logger.log(f"[Lifecycle Patch] Killing original loading widget: {classname} | {oname} (text: {text})")
                         child.hide()
                         child.setMaximumSize(0, 0)
-                        # Patch show to keep it hidden
+                        # Patch show() to prevent it coming back
                         if not hasattr(child, "_companion_hidden"):
                             child.show = lambda: None
                             child._companion_hidden = True
+                sidebar._logged_loading_hide = True
             except: pass
             
         hide_original_loading(self)
@@ -210,6 +283,9 @@ def patch(dock_web_view_mod):
         # Hook the initial page load to freeze it after 5 seconds
         def on_initial_load(success):
             companion_logger.log(f"[Lifecycle Patch] CustomWebEnginePage.loadFinished triggered! Success state: {success}")
+            if hasattr(self, "snapshot_label"):
+                # Delay hiding to ensure page is actually painted
+                QTimer.singleShot(150, self.snapshot_label.hide)
             if success:
                 if not hasattr(self, "home_url") or not self.home_url:
                     self.home_url = self.webview.url().toString()
@@ -366,10 +442,17 @@ def patch(dock_web_view_mod):
     def update_loading_progress(sidebar, progress):
         if not hasattr(sidebar, "progress_bar"): return
         if progress < 100:
+            if sidebar.progress_bar.isHidden():
+                companion_logger.log(f"[Lifecycle Patch] Progress bar shown at {progress}%")
             sidebar.progress_bar.setValue(progress)
             sidebar.progress_bar.show()
+            
+            # Layering: Webview < Snapshot < Progress Bar
+            if hasattr(sidebar, "snapshot_label") and sidebar.snapshot_label.isVisible():
+                sidebar.snapshot_label.raise_()
             sidebar.progress_bar.raise_()
         else:
+            companion_logger.log("[Lifecycle Patch] Progress finished (100%). Hiding progress bar.")
             sidebar.progress_bar.hide()
 
     # Helper functions to freeze and thaw using QStackedWidget
@@ -401,7 +484,7 @@ def patch(dock_web_view_mod):
                         return
                         
                     sidebar.snapshot_label.setPixmap(pixmap)
-                    sidebar.snapshot_label.setGeometry(sidebar.webview.rect())
+                    sidebar.snapshot_label.setGeometry(sidebar.webview.geometry())
                     sidebar.snapshot_label.show()
                     sidebar.snapshot_label.raise_()
                     

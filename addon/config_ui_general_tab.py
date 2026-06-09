@@ -43,6 +43,14 @@ class GeneralTab(QWidget):
         self.add_to_new_card_chk.setChecked(self.config.get("enable_add_to_new_card", True))
         self.add_to_new_card_chk.setToolTip("Adds a shortcut to create a new Anki card from the sidebar selection via right-click.")
 
+        self.progress_bar_chk = QCheckBox("Enable Sleek Progress Bar")
+        self.progress_bar_chk.setChecked(self.config.get("enable_progress_bar", True))
+        self.progress_bar_chk.setToolTip("Shows a thin blue progress bar at the top of the sidebar while pages are loading.")
+
+        self.persistent_view_chk = QCheckBox("Enable Persistent View (Flicker-Free Transitions)")
+        self.persistent_view_chk.setChecked(self.config.get("enable_persistent_view", True))
+        self.persistent_view_chk.setToolTip("Keeps the current page visible until the new one is fully loaded, preventing white/blank screens during navigation.")
+
         # Toolbar Settings
         self.toolbar_group = QGroupBox("Toolbar Settings")
         toolbar_layout = QVBoxLayout(self.toolbar_group)
@@ -87,6 +95,8 @@ class GeneralTab(QWidget):
         group_layout.addWidget(self.ai_hints_opt_chk)
         group_layout.addWidget(self.right_click_hints_chk)
         group_layout.addWidget(self.add_to_new_card_chk)
+        group_layout.addWidget(self.progress_bar_chk)
+        group_layout.addWidget(self.persistent_view_chk)
         group_layout.addWidget(self.send_multiple_chk)
         
         layout.addWidget(self.group)
@@ -123,6 +133,8 @@ class GeneralTab(QWidget):
             "enable_ai_hints_optimization": self.ai_hints_opt_chk.isChecked(),
             "enable_right_click_hints_preservation": self.right_click_hints_chk.isChecked(),
             "enable_add_to_new_card": self.add_to_new_card_chk.isChecked(),
+            "enable_progress_bar": self.progress_bar_chk.isChecked(),
+            "enable_persistent_view": self.persistent_view_chk.isChecked(),
             "show_wiki_button": self.show_wiki_chk.isChecked(),
             "show_donate_button": self.show_donate_chk.isChecked(),
             "search_engine": self.search_engine_combo.currentText(),

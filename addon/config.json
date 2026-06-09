@@ -7,6 +7,8 @@
     "enable_ai_hints_optimization": true,
     "enable_right_click_hints_preservation": true,
     "enable_add_to_new_card": true,
+    "enable_progress_bar": true,
+    "enable_persistent_view": true,
     "show_wiki_button": true,
     "show_donate_button": true,
     "search_engine": "Google",
