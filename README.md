@@ -50,6 +50,15 @@ This companion addon is designed to run seamlessly alongside the original **Anki
 * **The Problem**: Original sidebar only reads the single designated priority field.
 * **The Solution**: Allows concatenating and sending all non-empty card fields to the AI, formatted clearly as `FieldName: FieldValue`. It automatically filters out empty fields and fields containing only boilerplate spaces or tags.
 
+### 🌐 10. Integrated Browser Navigation & Search
+* **The Problem**: The sidebar was locked to the AI chatbot URL, making it difficult to quickly look up external references or navigate between pages.
+* **The Solution**:
+  - **Minimal Address Bar**: Direct URL entry and keyword search support.
+  - **Navigation Controls**: Back, Forward, and Reload buttons integrated into the header.
+  - **Custom Search Engines**: Configurable search providers (Google, DuckDuckGo, Bing, or Custom).
+  - **Sleek Progress Bar**: A browser-style progress indicator at the top of the sidebar replaces intrusive loading overlays.
+  - **Persistent View**: The current page remains visible while the next one loads for a smoother browsing experience.
+
 ---
 
 ## Configuration & Settings
