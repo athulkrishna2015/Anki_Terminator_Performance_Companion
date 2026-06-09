@@ -6,6 +6,7 @@
     "enable_image_pasting": true,
     "enable_ai_hints_optimization": true,
     "enable_right_click_hints_preservation": true,
+    "enable_add_to_new_card": true,
     "thaw_duration_seconds": 30,
     "send_multiple_fields": false
 }

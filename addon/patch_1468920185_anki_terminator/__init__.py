@@ -83,7 +83,7 @@ def apply_patches():
         from . import context_menu_patch
         css_patch.patch(dock_web_view_mod)
         lifecycle_patch.patch(dock_web_view_mod)
-        context_menu_patch.patch(add_fields_mod)
+        context_menu_patch.patch(add_fields_mod, dock_web_view_mod)
     except Exception as e:
         companion_logger.log(f"[Terminator Companion] Webview/Lifecycle/Context Menu patch failed: {e}")
 

@@ -39,6 +39,10 @@ class GeneralTab(QWidget):
         self.right_click_hints_chk.setChecked(self.config.get("enable_right_click_hints_preservation", True))
         self.right_click_hints_chk.setToolTip("Ensures AI-Hints JSON data block at the end of card fields is not overwritten during right-click context menu inserts.")
 
+        self.add_to_new_card_chk = QCheckBox("Enable 'Add to New Card' (Context Menu & Toolbar)")
+        self.add_to_new_card_chk.setChecked(self.config.get("enable_add_to_new_card", True))
+        self.add_to_new_card_chk.setToolTip("Adds a shortcut to create a new Anki card from the sidebar selection via right-click or the '+' toolbar button.")
+
         # Multiple Fields Toggle
         self.send_multiple_chk = QCheckBox("Send Multiple Fields to AI")
         anki_terminator_config = mw.addonManager.getConfig("1468920185") or {}
@@ -51,6 +55,7 @@ class GeneralTab(QWidget):
         group_layout.addWidget(self.html_cleanup_chk)
         group_layout.addWidget(self.ai_hints_opt_chk)
         group_layout.addWidget(self.right_click_hints_chk)
+        group_layout.addWidget(self.add_to_new_card_chk)
         group_layout.addWidget(self.send_multiple_chk)
         
         layout.addWidget(self.group)
@@ -75,6 +80,7 @@ class GeneralTab(QWidget):
             "enable_html_cleanup": self.html_cleanup_chk.isChecked(),
             "enable_ai_hints_optimization": self.ai_hints_opt_chk.isChecked(),
             "enable_right_click_hints_preservation": self.right_click_hints_chk.isChecked(),
+            "enable_add_to_new_card": self.add_to_new_card_chk.isChecked(),
             "thaw_duration_seconds": self.thaw_sb.value(),
             "send_multiple_fields": self.send_multiple_chk.isChecked()
         }

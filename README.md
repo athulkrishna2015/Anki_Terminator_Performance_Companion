@@ -42,7 +42,11 @@ This companion addon is designed to run seamlessly alongside the original **Anki
 * **The Problem**: To change companion settings, users had to navigate through the Add-on Manager, which is slow during active study sessions.
 * **The Solution**: Injects a custom **"C" button** directly into the sidebar header toolbar (next to the settings cogwheel). Clicking it instantly opens the Terminator Companion settings dialog.
 
-### 🗃️ 8. Multiple Fields Support
+### ➕ 8. Add to New Card (Context Menu)
+* **The Problem**: Saving AI-generated content into new cards required manual copying, switching to the Add Cards window, and pasting.
+* **The Solution**: Adds a new **"Add to new card"** option in the sidebar's right-click context menu. It extracts the selected text or images (preserving formatting and math) and pre-populates them into the first field of a new card window instantly.
+
+### 🗃️ 9. Multiple Fields Support
 * **The Problem**: Original sidebar only reads the single designated priority field.
 * **The Solution**: Allows concatenating and sending all non-empty card fields to the AI, formatted clearly as `FieldName: FieldValue`. It automatically filters out empty fields and fields containing only boilerplate spaces or tags.
 
@@ -78,6 +82,13 @@ Please refer to [DEVELOPMENT.md](DEVELOPMENT.md) for details on project director
 ---
 
 ## Changelog
+
+### June 9, 2026 (v1.5.0)
+- **Add to New Card (Context Menu & Toolbar)**:
+  - Added a new context menu option "Add to new card" to the sidebar.
+  - Replaced the original "Add text to card" wiki button in the header with the same "Add to new card" functionality.
+  - Automatically extracts selection (text, math, and images) and opens a pre-filled "Add Cards" window.
+  - Preserves LaTeX delimiters and rich HTML formatting during the transfer.
 
 ### June 7, 2026 (v1.4.1)
 - **Fixed Button Race Condition**:

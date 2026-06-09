@@ -118,10 +118,25 @@ def patch(dock_web_view_mod):
                 # Find the settings button (cogwheel) which is a QPushButton in a QToolBar
                 buttons = self.findChildren(QPushButton)
                 settings_btn = None
+                cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
                 for btn in buttons:
                     if "⚙" in btn.text():
                         settings_btn = btn
-                        break
+                    
+                    # Also look for the "add text to card" / wiki button to replace it
+                    tooltip = btn.toolTip().lower()
+                    if cfg.get("enable_add_to_new_card", True) and ("add text to card" in tooltip or "wiki" in tooltip):
+                        btn.setToolTip("Add selection to new card")
+                        btn.setText(" ➕ ")
+                        btn.setCursor(Qt.CursorShape.PointingHandCursor)
+                        # Disconnect original signals (opens wiki) and connect to our new logic
+                        try:
+                            btn.clicked.disconnect()
+                        except:
+                            pass
+                        from .context_menu_patch import on_add_to_new_card
+                        btn.clicked.connect(lambda _, b=btn: on_add_to_new_card(self.webview))
+                        companion_logger.log(f"[Lifecycle Patch] Replaced original button '{tooltip}' with Add to New Card action.")
                 
                 if settings_btn:
                     parent_toolbar = settings_btn.parentWidget()
@@ -430,9 +445,15 @@ def patch(dock_web_view_mod):
                             layout = fields_tab_widget.layout()
                             if layout:
                                 cfg = mw.addonManager.getConfig("1468920185") or {}
+                                comp_cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+                                
                                 self.send_multiple_fields_checkbox = QCheckBox("Send Multiple Fields")
                                 self.send_multiple_fields_checkbox.setChecked(cfg.get("send_multiple_fields", False))
                                 layout.insertWidget(layout.count() - 1, self.send_multiple_fields_checkbox)
+
+                                self.add_to_new_card_checkbox = QCheckBox("Enable 'Add to New Card'")
+                                self.add_to_new_card_checkbox.setChecked(comp_cfg.get("enable_add_to_new_card", True))
+                                layout.insertWidget(layout.count() - 1, self.add_to_new_card_checkbox)
                                 break
             except: pass
         config_mod.SetPopupConfig.__init__ = new_config_init
@@ -446,6 +467,12 @@ def patch(dock_web_view_mod):
                     cfg = mw.addonManager.getConfig("1468920185") or {}
                     cfg["send_multiple_fields"] = val
                     mw.addonManager.writeConfig("1468920185", cfg)
+                
+                if hasattr(self, "add_to_new_card_checkbox"):
+                    val = self.add_to_new_card_checkbox.isChecked()
+                    comp_cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+                    comp_cfg["enable_add_to_new_card"] = val
+                    mw.addonManager.writeConfig("Anki_Terminator_Companion", comp_cfg)
             except: pass
         config_mod.SetPopupConfig.save_config_fontfamiles = new_save_config
     except: pass
