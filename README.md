@@ -84,6 +84,7 @@ Please refer to [DEVELOPMENT.md](DEVELOPMENT.md) for details on project director
 ## Changelog
 
 ### June 9, 2026 (v1.6.0)
+- **Configuration & Installation Fix**: Fixed a bug where 'Wiki' and 'Donate' buttons were not hidden when unchecked, caused by a hardcoded package name constraint. Configuration paths are now dynamically resolved (`__name__.split(".")[0]`), ensuring preferences are correctly applied regardless of the installation directory name.
 - **Full Browser Integration**:
   - Added a minimal **Address Bar** next to the prompt buttons for direct URL entry and searching.
   - Added **Back, Forward, and Reload** navigation buttons.

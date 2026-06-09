@@ -94,7 +94,7 @@ def patch(ad_blocker_mod):
 
     # Redefine interceptRequest
     def optimized_intercept_request(self, info: QWebEngineUrlRequestInfo):
-        config = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+        config = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
         if not config.get("enable_adblocker_optimization", True):
             return original_intercept_request(self, info)
         try:

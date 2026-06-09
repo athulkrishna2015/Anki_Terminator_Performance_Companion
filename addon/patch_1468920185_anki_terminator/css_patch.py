@@ -31,7 +31,7 @@ def patch(dock_web_view_mod):
         original_inject(self)
         
         # Check if CSS optimization is enabled dynamically
-        config = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+        config = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
         if not config.get("enable_css_optimization", True):
             return
 

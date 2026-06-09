@@ -229,7 +229,7 @@ def patch(dock_web_view_mod):
                 buttons = self.findChildren(QPushButton)
                 settings_btn = None
                 mnemonic_btn = None
-                cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+                cfg = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
                 
                 for btn in buttons:
                     txt = btn.text().lower()
@@ -357,7 +357,7 @@ def patch(dock_web_view_mod):
         if "." in text and " " not in text:
             url_str = text if text.startswith(("http://", "https://")) else "https://" + text
         else:
-            cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+            cfg = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
             custom_url = cfg.get("custom_search_url", "https://www.google.com/search?q=")
             import urllib.parse
             url_str = custom_url + urllib.parse.quote(text)
@@ -375,7 +375,7 @@ def patch(dock_web_view_mod):
     # Helper functions to freeze and thaw using QStackedWidget
     def freeze_sidebar(sidebar):
         try:
-            cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+            cfg = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
             if not cfg.get("enable_lifecycle_freezing", True):
                 return
             
@@ -589,7 +589,7 @@ def patch(dock_web_view_mod):
     if hasattr(dock_web_view_mod.ResizableWebView, "set_last_text"):
         original_set_last_text = dock_web_view_mod.ResizableWebView.set_last_text
         def patched_set_last_text(self, text):
-            cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+            cfg = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
             if cfg.get("enable_html_cleanup", True) and isinstance(text, str):
                 text = clean_html_for_ai(text)
             return original_set_last_text(self, text)
@@ -600,7 +600,7 @@ def patch(dock_web_view_mod):
         original_get_field_text = dock_web_view_mod.ResizableWebView.get_field_text
 
         def patched_get_field_text(self, card=None):
-            config = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+            config = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
             original_config = mw.addonManager.getConfig("1468920185") or {}
 
             if card is None and mw.state == "review":
@@ -642,7 +642,7 @@ def patch(dock_web_view_mod):
                             layout = fields_tab_widget.layout()
                             if layout:
                                 cfg = mw.addonManager.getConfig("1468920185") or {}
-                                comp_cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+                                comp_cfg = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
                                 
                                 self.send_multiple_fields_checkbox = QCheckBox("Send Multiple Fields")
                                 self.send_multiple_fields_checkbox.setChecked(cfg.get("send_multiple_fields", False))
@@ -667,9 +667,9 @@ def patch(dock_web_view_mod):
                 
                 if hasattr(self, "add_to_new_card_checkbox"):
                     val = self.add_to_new_card_checkbox.isChecked()
-                    comp_cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+                    comp_cfg = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
                     comp_cfg["enable_add_to_new_card"] = val
-                    mw.addonManager.writeConfig("Anki_Terminator_Companion", comp_cfg)
+                    mw.addonManager.writeConfig(__name__.split(".")[0], comp_cfg)
             except: pass
         config_mod.SetPopupConfig.save_config_fontfamiles = new_save_config
     except: pass

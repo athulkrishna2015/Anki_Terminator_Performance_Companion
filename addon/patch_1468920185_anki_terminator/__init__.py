@@ -19,7 +19,7 @@ def apply_ai_hints_patch():
                     
                     def optimized_clean_ai_hints_from_text(text: str) -> str:
                         from aqt import mw
-                        cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+                        cfg = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
                         if not cfg.get("enable_ai_hints_optimization", True):
                             return original_clean(text)
 

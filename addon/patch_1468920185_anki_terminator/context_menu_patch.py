@@ -238,7 +238,7 @@ def patch(add_fields_mod, dock_web_view_mod=None):
         from aqt import mw, QAction
         from aqt.qt import QWebEnginePage
 
-        cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+        cfg = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
         if not cfg.get("enable_add_to_new_card", True):
             return
 
@@ -266,7 +266,7 @@ def patch(add_fields_mod, dock_web_view_mod=None):
 
     def patched_context_menu(note, webview, field, *args, **kwargs):
         from aqt import mw
-        cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+        cfg = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
         if not cfg.get("enable_right_click_hints_preservation", True):
             return original_context_menu(note, webview, field, *args, **kwargs)
 
@@ -290,7 +290,7 @@ def patch(add_fields_mod, dock_web_view_mod=None):
 
     def patched_add_text_to_card(note, field, selected, col):
         from aqt import mw
-        cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+        cfg = mw.addonManager.getConfig(__name__.split(".")[0]) or {}
         if not cfg.get("enable_right_click_hints_preservation", True):
             return original_add_text_to_card(note, field, selected, col)
 
