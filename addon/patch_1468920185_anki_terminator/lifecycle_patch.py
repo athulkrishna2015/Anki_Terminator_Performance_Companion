@@ -94,16 +94,126 @@ def patch(dock_web_view_mod):
         def new_webview_resize(event):
             if hasattr(self, "snapshot_label") and self.snapshot_label:
                 self.snapshot_label.setGeometry(self.webview.rect())
+            if hasattr(self, "progress_bar") and self.progress_bar:
+                self.progress_bar.setGeometry(0, 0, self.webview.width(), 2)
             if original_webview_resize:
                 original_webview_resize(event)
             else:
                 super(self.webview.__class__, self.webview).resizeEvent(event)
         self.webview.resizeEvent = new_webview_resize
+
+        # Navigation UI Components (Created directly without container)
+        self.btn_back = QPushButton(" < ")
+        self.btn_forward = QPushButton(" > ")
+        self.btn_reload = QPushButton(" R ")
+        self.btn_home = QPushButton(" H ")
+        
+        # Search UI Component container
+        self.search_control = QWidget()
+        self.search_control.setMaximumHeight(26)
+        search_layout = QHBoxLayout(self.search_control)
+        search_layout.setContentsMargins(0, 0, 0, 0)
+        search_layout.setSpacing(2)
+
+        self.address_bar = QLineEdit()
+        self.address_bar.setPlaceholderText("URL or Search...")
+        self.address_bar.setMinimumWidth(100)
+        self.address_bar.setMaximumWidth(250)
+        self.address_bar.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.address_bar.setAttribute(Qt.WidgetAttribute.WA_MacShowFocusRect, False)
+        # Style to match Anki's dark theme text boxes
+        self.address_bar.setStyleSheet("QLineEdit { border: 1px solid #555; border-radius: 4px; padding: 2px 6px; background: #2a2a2a; color: #eee; height: 20px; font-size: 13px; }")
+
+        search_layout.addWidget(self.address_bar)
+        
+        # Anki's custom layouts often swallow clicks. Force focus on click.
+        class FocusFilter(QObject):
+            def eventFilter(self, obj, event):
+                if event.type() == QEvent.Type.MouseButtonPress:
+                    obj.setFocus()
+                return super().eventFilter(obj, event)
+                
+        self._focus_filter = FocusFilter(self.address_bar)
+        self.address_bar.installEventFilter(self._focus_filter)
+        
+        def handle_reload():
+            # Reload page and clear history to prevent back/forward navigation
+            self.webview.reload()
+            if self.webview.history():
+                self.webview.history().clear()
+                
+        def handle_home():
+            if hasattr(self, "home_url") and self.home_url:
+                self.webview.load(QUrl(self.home_url))
+                if self.webview.history():
+                    self.webview.history().clear()
+                
+        self.btn_back.clicked.connect(self.webview.back)
+        self.btn_forward.clicked.connect(self.webview.forward)
+        self.btn_reload.clicked.connect(handle_reload)
+        self.btn_home.clicked.connect(handle_home)
+        
+        def handle_return_pressed():
+            if self.address_bar.hasFocus():
+                # Clear history when a new URL or search is entered manually
+                if self.webview.history():
+                    self.webview.history().clear()
+                navigate_address(self, self.address_bar.text())
+                
+        self.address_bar.returnPressed.connect(handle_return_pressed)
+        
+        self.progress_bar = QProgressBar(self.webview)
+        self.progress_bar.setFixedHeight(2)
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setStyleSheet("QProgressBar { border: none; background: transparent; } QProgressBar::chunk { background-color: #2196F3; }")
+        self.progress_bar.hide()
+        
+        # Hook loading signals
+        self.webview.loadProgress.connect(lambda p: update_loading_progress(self, p))
+        self.webview.urlChanged.connect(lambda u: self.address_bar.setText(u.toString()))
+        
+        def on_load_started():
+            if hasattr(self, "progress_bar"):
+                self.progress_bar.setValue(0)
+                self.progress_bar.show()
+                self.progress_bar.raise_()
+            # Unfreeze sidebar to allow native browser rendering while loading
+            if hasattr(self, "snapshot_label") and self.snapshot_label:
+                self.snapshot_label.hide()
+            hide_original_loading(self)
+            
+        self.webview.loadStarted.connect(on_load_started)
+
+        # Try to suppress original loading overlay immediately and periodically
+        def hide_original_loading(sidebar):
+            try:
+                # Recursively look for anything that looks like a loading screen
+                for child in sidebar.findChildren(QWidget):
+                    oname = child.objectName().lower()
+                    text = ""
+                    if hasattr(child, "text") and callable(child.text):
+                        try: text = child.text().lower()
+                        except: pass
+                    
+                    if "loading" in oname or "loading" in text or "spinner" in oname:
+                        child.hide()
+                        child.setMaximumSize(0, 0)
+                        # Patch show to keep it hidden
+                        if not hasattr(child, "_companion_hidden"):
+                            child.show = lambda: None
+                            child._companion_hidden = True
+            except: pass
+            
+        hide_original_loading(self)
+        QTimer.singleShot(2000, lambda: hide_original_loading(self))
             
         # Hook the initial page load to freeze it after 5 seconds
         def on_initial_load(success):
             companion_logger.log(f"[Lifecycle Patch] CustomWebEnginePage.loadFinished triggered! Success state: {success}")
             if success:
+                if not hasattr(self, "home_url") or not self.home_url:
+                    self.home_url = self.webview.url().toString()
+                    companion_logger.log(f"[Lifecycle Patch] Captured Home URL: {self.home_url}")
                 companion_logger.log("[Lifecycle Patch] Initial load finished. Scheduling freeze in 5 seconds...")
                 QTimer.singleShot(5000, lambda: freeze_sidebar(self))
                 
@@ -112,68 +222,155 @@ def patch(dock_web_view_mod):
             self.webpage._is_terminator_sidebar = True
             companion_logger.log("[Lifecycle Patch] Connected loadFinished signal for initial load freeze.")
 
-        # Inject Companion Config button next to settings cogwheel
+        # Inject Browser Controls and Companion Config button
         def inject_companion_button():
             try:
-                # Find the settings button (cogwheel) which is a QPushButton in a QToolBar
+                # Find all buttons to locate settings and mnemonic buttons
                 buttons = self.findChildren(QPushButton)
                 settings_btn = None
+                mnemonic_btn = None
                 cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
-                for btn in buttons:
-                    if "⚙" in btn.text():
-                        settings_btn = btn
-                    
-                    # Also look for the "add text to card" / wiki button to replace it
-                    tooltip = btn.toolTip().lower()
-                    if cfg.get("enable_add_to_new_card", True) and ("add text to card" in tooltip or "wiki" in tooltip):
-                        btn.setToolTip("Add selection to new card")
-                        btn.setText(" ➕ ")
-                        btn.setCursor(Qt.CursorShape.PointingHandCursor)
-                        # Disconnect original signals (opens wiki) and connect to our new logic
-                        try:
-                            btn.clicked.disconnect()
-                        except:
-                            pass
-                        from .context_menu_patch import on_add_to_new_card
-                        btn.clicked.connect(lambda _, b=btn: on_add_to_new_card(self.webview))
-                        companion_logger.log(f"[Lifecycle Patch] Replaced original button '{tooltip}' with Add to New Card action.")
                 
+                for btn in buttons:
+                    txt = btn.text().lower()
+                    tooltip = btn.toolTip().lower()
+                    
+                    if "⚙" in btn.text() or "settings" in tooltip:
+                        settings_btn = btn
+                    elif "mnemonic" in txt or "mnemonic" in tooltip:
+                        mnemonic_btn = btn
+                    
+                    # Handle configurable button visibility
+                    if "add text to card" in tooltip or "wiki" in tooltip:
+                        if not cfg.get("show_wiki_button", True):
+                            btn.hide()
+                            btn.setEnabled(False)
+                            if btn.parentWidget() and btn.parentWidget().layout():
+                                btn.parentWidget().layout().removeWidget(btn)
+                    
+                    if "💖" in txt or "donate" in tooltip or "support" in tooltip:
+                        if not cfg.get("show_donate_button", True):
+                            btn.hide()
+                            btn.setEnabled(False)
+                            if btn.parentWidget() and btn.parentWidget().layout():
+                                btn.parentWidget().layout().removeWidget(btn)
+
+                # 1. Inject Search Control next to Mnemonic button
+                if mnemonic_btn:
+                    prompt_toolbar = mnemonic_btn.parentWidget()
+                    if isinstance(prompt_toolbar, QToolBar):
+                        prompt_toolbar.addWidget(self.search_control)
+                        self.search_control.show()
+                        companion_logger.log("[Lifecycle Patch] Injected Search control into prompt QToolBar.")
+                    else:
+                        layout = prompt_toolbar.layout() if prompt_toolbar else None
+                        if layout:
+                            if hasattr(layout, 'addWidget'):
+                                layout.addWidget(self.search_control)
+                                self.search_control.show()
+                                companion_logger.log("[Lifecycle Patch] Injected Search control into prompt layout.")
+
+                # 2. Inject Nav Controls and Companion Config button next to Settings cogwheel
                 if settings_btn:
                     parent_toolbar = settings_btn.parentWidget()
                     if isinstance(parent_toolbar, QToolBar):
                         from ..config_ui import show_config_dialog
                         
+                        # Style nav buttons exactly like config button
+                        for btn in [self.btn_back, self.btn_forward, self.btn_reload, self.btn_home]:
+                            btn.setFixedSize(settings_btn.size())
+                            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+                            btn.setStyleSheet("QPushButton { margin: 1px; padding: 1px; font-weight: bold; color: #2196F3; }")
+                            btn.setToolTip("Browser Navigation")
+                        
                         self.companion_config_btn = QPushButton(" C ")
                         self.companion_config_btn.setToolTip("Terminator Companion Config")
                         self.companion_config_btn.setFixedSize(settings_btn.size())
                         self.companion_config_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-                        # Styling to match the original buttons but with a blue tint
                         self.companion_config_btn.setStyleSheet("QPushButton { margin: 1px; padding: 1px; font-weight: bold; color: #2196F3; }")
                         
-                        # Add to toolbar
-                        parent_toolbar.insertWidget(parent_toolbar.actions()[parent_toolbar.actions().index(settings_btn.graphicsProxyWidget().action() if settings_btn.graphicsProxyWidget() else next(a for a in parent_toolbar.actions() if parent_toolbar.widgetForAction(a) == settings_btn))], self.companion_config_btn)
-                        self.companion_config_btn.clicked.connect(lambda: show_config_dialog(self))
-                        companion_logger.log("[Lifecycle Patch] Injected Companion Config button into header.")
+                        # Find action for settings button to insert before it
+                        settings_action = None
+                        for action in parent_toolbar.actions():
+                            if parent_toolbar.widgetForAction(action) == settings_btn:
+                                settings_action = action
+                                break
+                        
+                        if settings_action:
+                            parent_toolbar.insertWidget(settings_action, self.btn_back)
+                            parent_toolbar.insertWidget(settings_action, self.btn_forward)
+                            parent_toolbar.insertWidget(settings_action, self.btn_reload)
+                            parent_toolbar.insertWidget(settings_action, self.btn_home)
+                            parent_toolbar.insertWidget(settings_action, self.companion_config_btn)
+                        else:
+                            parent_toolbar.addWidget(self.btn_back)
+                            parent_toolbar.addWidget(self.btn_forward)
+                            parent_toolbar.addWidget(self.btn_reload)
+                            parent_toolbar.addWidget(self.btn_home)
+                            parent_toolbar.addWidget(self.companion_config_btn)
+                            
+                        self.companion_config_btn.clicked.connect(lambda: show_config_dialog(mw))
+                        companion_logger.log("[Lifecycle Patch] Injected Nav buttons and Config button into QToolBar header.")
                     else:
                         # Fallback simple injection if layout structure is different
                         layout = parent_toolbar.layout() if parent_toolbar else None
                         if layout:
                             from ..config_ui import show_config_dialog
+                            
+                            for btn in [self.btn_back, self.btn_forward, self.btn_reload, self.btn_home]:
+                                btn.setFixedSize(settings_btn.size())
+                                btn.setCursor(Qt.CursorShape.PointingHandCursor)
+                                btn.setStyleSheet("QPushButton { margin: 1px; padding: 1px; font-weight: bold; color: #2196F3; }")
+                                btn.setToolTip("Browser Navigation")
+                                
                             self.companion_config_btn = QPushButton(" C ")
                             self.companion_config_btn.setToolTip("Terminator Companion Config")
                             self.companion_config_btn.setFixedSize(settings_btn.size())
+                            self.companion_config_btn.setCursor(Qt.CursorShape.PointingHandCursor)
                             self.companion_config_btn.setStyleSheet("QPushButton { margin: 1px; padding: 1px; font-weight: bold; color: #2196F3; }")
-                            idx = layout.indexOf(settings_btn)
-                            layout.insertWidget(idx, self.companion_config_btn)
-                            self.companion_config_btn.clicked.connect(lambda: show_config_dialog(self))
-                            companion_logger.log("[Lifecycle Patch] Injected Companion Config button via layout fallback.")
-            except Exception as ex:
-                companion_logger.log(f"[Lifecycle Patch] Failed to inject header button: {ex}")
+                            
+                            if hasattr(layout, 'insertWidget'):
+                                idx = layout.indexOf(settings_btn)
+                                layout.insertWidget(idx, self.btn_back)
+                                layout.insertWidget(idx + 1, self.btn_forward)
+                                layout.insertWidget(idx + 2, self.btn_reload)
+                                layout.insertWidget(idx + 3, self.btn_home)
+                                layout.insertWidget(idx + 4, self.companion_config_btn)
+                            elif hasattr(layout, 'addWidget'):
+                                layout.addWidget(self.btn_back)
+                                layout.addWidget(self.btn_forward)
+                                layout.addWidget(self.btn_reload)
+                                layout.addWidget(self.btn_home)
+                                layout.addWidget(self.companion_config_btn)
+                                
+                            self.companion_config_btn.clicked.connect(lambda: show_config_dialog(mw))
+                            companion_logger.log("[Lifecycle Patch] Injected Nav buttons and Config button via layout fallback.")
+            except Exception as ex:                companion_logger.log(f"[Lifecycle Patch] Failed to inject header/browser controls: {ex}")
 
         # Delay injection slightly to ensure original UI is constructed
         QTimer.singleShot(1000, inject_companion_button)
 
     dock_web_view_mod.ResizableWebView.__init__ = new_init
+
+    def navigate_address(sidebar, text):
+        if not text.strip(): return
+        if "." in text and " " not in text:
+            url_str = text if text.startswith(("http://", "https://")) else "https://" + text
+        else:
+            cfg = mw.addonManager.getConfig("Anki_Terminator_Companion") or {}
+            custom_url = cfg.get("custom_search_url", "https://www.google.com/search?q=")
+            import urllib.parse
+            url_str = custom_url + urllib.parse.quote(text)
+        sidebar.webview.load(QUrl(url_str))
+
+    def update_loading_progress(sidebar, progress):
+        if not hasattr(sidebar, "progress_bar"): return
+        if progress < 100:
+            sidebar.progress_bar.setValue(progress)
+            sidebar.progress_bar.show()
+            sidebar.progress_bar.raise_()
+        else:
+            sidebar.progress_bar.hide()
 
     # Helper functions to freeze and thaw using QStackedWidget
     def freeze_sidebar(sidebar):

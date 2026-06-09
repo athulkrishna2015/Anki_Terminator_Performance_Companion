@@ -213,9 +213,13 @@ def on_add_to_new_card(webview):
         note = add_cards.editor.note
         if note and note.keys():
             first_field = note.keys()[0]
-            note[first_field] = selected_html
+            current_content = note[first_field]
+            if current_content and current_content.strip():
+                note[first_field] = current_content + "<br><br>" + selected_html
+            else:
+                note[first_field] = selected_html
             add_cards.editor.loadNoteKeepingFocus()
-            companion_logger.log(f"[Context Menu] Added selection to new card window (field: {first_field})")
+            companion_logger.log(f"[Context Menu] Added/Appended selection to new card window (field: {first_field})")
 
     webview.page().runJavaScript(JS_HTML_EXTRACTOR, callback)
 

@@ -41,7 +41,38 @@ class GeneralTab(QWidget):
 
         self.add_to_new_card_chk = QCheckBox("Enable 'Add to New Card' (Context Menu & Toolbar)")
         self.add_to_new_card_chk.setChecked(self.config.get("enable_add_to_new_card", True))
-        self.add_to_new_card_chk.setToolTip("Adds a shortcut to create a new Anki card from the sidebar selection via right-click or the '+' toolbar button.")
+        self.add_to_new_card_chk.setToolTip("Adds a shortcut to create a new Anki card from the sidebar selection via right-click.")
+
+        # Toolbar Settings
+        self.toolbar_group = QGroupBox("Toolbar Settings")
+        toolbar_layout = QVBoxLayout(self.toolbar_group)
+
+        self.show_wiki_chk = QCheckBox("Show 'Wiki' (?) Button")
+        self.show_wiki_chk.setChecked(self.config.get("show_wiki_button", True))
+        
+        self.show_donate_chk = QCheckBox("Show 'Donate' (💖) Button")
+        self.show_donate_chk.setChecked(self.config.get("show_donate_button", True))
+
+        toolbar_layout.addWidget(self.show_wiki_chk)
+        toolbar_layout.addWidget(self.show_donate_chk)
+
+        # Search Engine Configuration
+        self.search_group = QGroupBox("Search & Address Bar Settings")
+        search_layout = QFormLayout(self.search_group)
+
+        self.search_engine_combo = QComboBox()
+        self.search_engine_combo.addItems(["Google", "DuckDuckGo", "Bing", "Custom"])
+        self.search_engine_combo.setCurrentText(self.config.get("search_engine", "Google"))
+        
+        self.custom_search_edit = QLineEdit()
+        self.custom_search_edit.setText(self.config.get("custom_search_url", "https://www.google.com/search?q="))
+        self.custom_search_edit.setPlaceholderText("e.g., https://example.com/search?q=")
+        self.custom_search_edit.setEnabled(self.search_engine_combo.currentText() == "Custom")
+        
+        self.search_engine_combo.currentTextChanged.connect(self._on_search_engine_changed)
+
+        search_layout.addRow("Search Engine:", self.search_engine_combo)
+        search_layout.addRow("Search URL / Template:", self.custom_search_edit)
 
         # Multiple Fields Toggle
         self.send_multiple_chk = QCheckBox("Send Multiple Fields to AI")
@@ -59,6 +90,8 @@ class GeneralTab(QWidget):
         group_layout.addWidget(self.send_multiple_chk)
         
         layout.addWidget(self.group)
+        layout.addWidget(self.toolbar_group)
+        layout.addWidget(self.search_group)
         
         # Thaw Duration Form Layout
         form_layout = QFormLayout()
@@ -72,6 +105,15 @@ class GeneralTab(QWidget):
         layout.addLayout(form_layout)
         layout.addStretch()
 
+    def _on_search_engine_changed(self, text):
+        self.custom_search_edit.setEnabled(text == "Custom")
+        if text == "Google":
+            self.custom_search_edit.setText("https://www.google.com/search?q=")
+        elif text == "DuckDuckGo":
+            self.custom_search_edit.setText("https://duckduckgo.com/?q=")
+        elif text == "Bing":
+            self.custom_search_edit.setText("https://www.bing.com/search?q=")
+
     def get_settings(self):
         return {
             "enable_lifecycle_freezing": self.lifecycle_chk.isChecked(),
@@ -81,6 +123,10 @@ class GeneralTab(QWidget):
             "enable_ai_hints_optimization": self.ai_hints_opt_chk.isChecked(),
             "enable_right_click_hints_preservation": self.right_click_hints_chk.isChecked(),
             "enable_add_to_new_card": self.add_to_new_card_chk.isChecked(),
+            "show_wiki_button": self.show_wiki_chk.isChecked(),
+            "show_donate_button": self.show_donate_chk.isChecked(),
+            "search_engine": self.search_engine_combo.currentText(),
+            "custom_search_url": self.custom_search_edit.text(),
             "thaw_duration_seconds": self.thaw_sb.value(),
             "send_multiple_fields": self.send_multiple_chk.isChecked()
         }

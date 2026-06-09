@@ -83,10 +83,20 @@ Please refer to [DEVELOPMENT.md](DEVELOPMENT.md) for details on project director
 
 ## Changelog
 
+### June 9, 2026 (v1.6.0)
+- **Full Browser Integration**:
+  - Added a minimal **Address Bar** next to the prompt buttons for direct URL entry and searching.
+  - Added **Back, Forward, and Reload** navigation buttons.
+  - Integrated **Configurable Search Engines**: Choose between Google, DuckDuckGo, Bing, or a Custom search URL via Companion settings.
+  - Replaced the intrusive full-screen loading overlay with a sleek, browser-style **Progress Bar** at the top.
+  - Sidebar now stays on the current page while a new one is loading, providing a smoother experience.
+- **UI Refinement**:
+  - Removed the "+" header button (functionality remains available in the right-click context menu).
+  - Minimalist layout preserves vertical space while adding powerful navigation tools.
+
 ### June 9, 2026 (v1.5.0)
-- **Add to New Card (Context Menu & Toolbar)**:
+- **Add to New Card (Context Menu)**:
   - Added a new context menu option "Add to new card" to the sidebar.
-  - Replaced the original "Add text to card" wiki button in the header with the same "Add to new card" functionality.
   - Automatically extracts selection (text, math, and images) and opens a pre-filled "Add Cards" window.
   - Preserves LaTeX delimiters and rich HTML formatting during the transfer.
 
