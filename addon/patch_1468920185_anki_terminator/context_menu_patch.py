@@ -341,7 +341,10 @@ def patch(add_fields_mod, dock_web_view_mod=None):
                     processed_text = selected_text
                     
                     # 1. Direct raw braces replacement (if selection contains raw braces)
-                    processed_text = re.sub(r'\{\{c\d+::[^}]+?\}\}', '[...]', processed_text)
+                    def raw_cloze_replacer(match):
+                        hint = match.group(2)
+                        return f"[{hint.strip()}]" if hint and hint.strip() else "[...]"
+                    processed_text = re.sub(r'\{\{c\d+::(.*?)(?:::(.*?))?\}\}', raw_cloze_replacer, processed_text)
                     
                     # 2. Dynamic active cloze answer replacement based on current card
                     if hasattr(mw, 'reviewer') and mw.reviewer.card:
@@ -350,24 +353,32 @@ def patch(add_fields_mod, dock_web_view_mod=None):
                             note = card.note()
                             cloze_num = card.ord + 1
                             
-                            cloze_pattern = re.compile(r'\{\{c' + str(cloze_num) + r'::([^:}]+?)(?:::[^}]+?)?\}\}', re.IGNORECASE)
+                            cloze_pattern = re.compile(r'\{\{c' + str(cloze_num) + r'::(.*?)(?:::(.*?))?\}\}', re.IGNORECASE)
                             
-                            answers = []
+                            replacements = []
                             for field_name, field_value in note.items():
                                 for match in cloze_pattern.finditer(field_value):
                                     ans = match.group(1).strip()
+                                    hint = match.group(2)
+                                    if hint:
+                                        hint = hint.strip()
+                                    
                                     # Strip HTML tags from the answer in case it has tags in the note field
                                     ans_clean = re.sub(r'<[^>]+>', '', ans).strip()
-                                    if ans_clean and ans_clean not in answers:
-                                        answers.append(ans_clean)
-                                    if ans and ans not in answers:
-                                        answers.append(ans)
+                                    
+                                    replacement_text = f"[{hint}]" if hint else "[...]"
+                                    
+                                    if ans_clean:
+                                        replacements.append((ans_clean, replacement_text))
+                                    if ans:
+                                        replacements.append((ans, replacement_text))
                                         
-                            answers.sort(key=len, reverse=True)
+                            # Sort by length descending to replace longer phrases first
+                            replacements.sort(key=lambda x: len(x[0]), reverse=True)
                             
-                            for ans in answers:
+                            for ans, replacement_text in replacements:
                                 escaped_ans = re.escape(ans)
-                                processed_text = re.sub(escaped_ans, '[...]', processed_text, flags=re.IGNORECASE)
+                                processed_text = re.sub(escaped_ans, replacement_text, processed_text, flags=re.IGNORECASE)
                         except Exception as e:
                             companion_logger.log(f"[Explain Cloze] Error processing active cloze: {e}")
                             
