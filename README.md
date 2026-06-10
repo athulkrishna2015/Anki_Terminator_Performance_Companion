@@ -59,6 +59,18 @@ This companion addon is designed to run seamlessly alongside the original **Anki
   - **Sleek Progress Bar**: A browser-style progress indicator at the top of the sidebar replaces intrusive loading overlays.
   - **Persistent View**: The current page remains visible while the next one loads for a smoother browsing experience.
 
+### 🤖 11. Header AI Dropdown Selector (Fast Switching & Dynamic Favicon)
+* **The Problem**: Switching between different AI providers (ChatGPT, DeepSeek, Claude, Gemini, etc.) was slow and required clicking the button repeatedly to rotate through them one by one.
+* **The Solution**: 
+  - Replaces the static `"AI"` header button with a dropdown selector.
+  - Displays full AI names and logos in the dropdown menu for fast, direct selection.
+  - Automatically updates the sidebar's window title bar and tab icon (favicon) to the active AI's logo.
+  - **Cache-Bypass Hard Refresh**: Selecting the already active AI triggers a cache-bypassing hard reload and clears webview history to start a fresh chat session.
+
+### 🧩 12. Censored "Explain Cloze" Context Menu Action
+* **The Problem**: Selecting card text containing active Cloze deletions (e.g. `{{c1::answer}}`) and sending it to the AI often reveals the correct answer directly within the prompt, prompting the AI to simply repeat it rather than explaining the concept.
+* **The Solution**: Introduces an **"Explain cloze with AnkiTerminator"** action to the right-click selection context menu. It automatically censors all cloze deletion segments, replacing them with `[...]` before passing the text to the AI so the LLM explains or solves the blank without being biased or influenced by the answer.
+
 ---
 
 ## Configuration & Settings
