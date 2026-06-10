@@ -428,18 +428,52 @@ def patch(dock_web_view_mod):
 
     dock_web_view_mod.ResizableWebView.__init__ = new_init
 
-    # Hook last_text_toolbar to replace "AI" button with QComboBox dropdown
+    # Hook last_text_toolbar to replace "AI" button with QToolButton icon dropdown
     original_last_text_toolbar = dock_web_view_mod.ResizableWebView.last_text_toolbar
     
+    def get_ai_icon(ai_type):
+        import os
+        from aqt.qt import QIcon
+        try:
+            path_manager = importlib.import_module("1468920185.path_manager")
+            addon_dir = os.path.dirname(path_manager.__file__)
+            logo_map = {
+                path_manager.CHAT_GPT: path_manager.CHAT_GPT_LOGO,
+                path_manager.GOOGLE_BARD: path_manager.GOOGLE_BARD_LOGO,
+                path_manager.BING_CHAT: path_manager.BING_CHAT_LOGO,
+                path_manager.CLAUDE: path_manager.CLAUDE_LOGO,
+                path_manager.PERPLEXITY: path_manager.PERPLEXITY_LOGO,
+                path_manager.DEEP_SEEK: path_manager.DEEP_SEEK_LOGO,
+                path_manager.GROK_AI: path_manager.GROK_LOGO,
+                path_manager.DUCK_AI: path_manager.DUCK_AI_LOGO,
+                path_manager.GOOGLE_AI_MODE: path_manager.GOOGLE_AI_MODE_LOGO,
+            }
+            logo_file = logo_map.get(ai_type)
+            if logo_file:
+                return QIcon(os.path.join(addon_dir, logo_file))
+        except Exception as e:
+            companion_logger.log(f"[get_ai_icon] Error loading icon for {ai_type}: {e}")
+        return QIcon()
+
     def new_last_text_toolbar(self, layout):
         original_make_button = self.make_button
         
         def custom_make_button(button_name, action_function, toolbar, sound=False, tooltip_text=None):
             if button_name == "AI":
-                from aqt.qt import QComboBox
+                from aqt.qt import QToolButton, QMenu, QAction
                 
-                combo = QComboBox()
-                combo.setToolTip("Quick Change AI")
+                btn = QToolButton()
+                btn.setText("AI")
+                btn.setToolTip("Quick Change AI")
+                btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+                btn.setStyleSheet(
+                    "QToolButton { margin: 1px; padding: 2px 6px; border: 1px solid #555; border-radius: 4px; background: #2a2a2a; color: #eee; font-weight: bold; }"
+                    "QToolButton::menu-indicator { image: none; }"
+                )
+                btn.setFixedHeight(25)
+                btn.setCursor(Qt.CursorShape.PointingHandCursor)
+                
+                menu = QMenu(btn)
                 
                 try:
                     path_manager = importlib.import_module("1468920185.path_manager")
@@ -447,21 +481,19 @@ def patch(dock_web_view_mod):
                 except Exception:
                     themes = ["Chat_GPT", "Google_Bard", "Google_AI_mode", "Bing_Chat", "Claude", "perplexity", "DeepSeek", "Grok_AI", "Duck_AI"]
                 
-                combo.addItems(themes)
+                def make_trigger_func(selected_ai):
+                    return lambda *args: on_ai_selected(selected_ai)
                 
-                config = mw.addonManager.getConfig("1468920185") or {}
-                now_ai = config.get("now_AI_type", "Chat_GPT")
-                if now_ai in themes:
-                    combo.setCurrentText(now_ai)
+                for theme in themes:
+                    icon = get_ai_icon(theme)
+                    label = theme.replace("_", " ")
+                    action = QAction(icon, label, menu)
+                    action.triggered.connect(make_trigger_func(theme))
+                    menu.addAction(action)
                 
-                combo.setStyleSheet(
-                    "QComboBox { border: 1px solid #555; border-radius: 4px; padding: 1px 4px; background: #2a2a2a; color: #eee; font-weight: bold; }"
-                )
-                combo.setFixedHeight(25)
-                combo.setCursor(Qt.CursorShape.PointingHandCursor)
+                btn.setMenu(menu)
                 
-                def on_ai_activated(index):
-                    selected_ai = combo.itemText(index)
+                def on_ai_selected(selected_ai):
                     current_config = mw.addonManager.getConfig("1468920185") or {}
                     active_ai = current_config.get("now_AI_type", "Chat_GPT")
                     
@@ -490,10 +522,9 @@ def patch(dock_web_view_mod):
                             
                         self.change_AI_type(update=False)
                 
-                combo.activated.connect(on_ai_activated)
-                self.ai_dropdown = combo
-                toolbar.addWidget(combo)
-                companion_logger.log("[AI Dropdown] Successfully replaced 'AI' button with QComboBox dropdown.")
+                self.ai_dropdown = btn
+                toolbar.addWidget(btn)
+                companion_logger.log("[AI Dropdown] Successfully replaced 'AI' button with QToolButton text dropdown.")
             else:
                 original_make_button(button_name, action_function, toolbar, sound, tooltip_text)
                 
@@ -511,12 +542,6 @@ def patch(dock_web_view_mod):
     
     def new_change_AI_type(self, update=True):
         original_change_AI_type(self, update=update)
-        if hasattr(self, "ai_dropdown") and self.ai_dropdown:
-            config = mw.addonManager.getConfig("1468920185") or {}
-            now_ai = config.get("now_AI_type", "Chat_GPT")
-            self.ai_dropdown.blockSignals(True)
-            self.ai_dropdown.setCurrentText(now_ai)
-            self.ai_dropdown.blockSignals(False)
             
     dock_web_view_mod.ResizableWebView.change_AI_type = new_change_AI_type
 
