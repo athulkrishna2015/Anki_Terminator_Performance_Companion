@@ -325,7 +325,30 @@ def patch(add_fields_mod, dock_web_view_mod=None):
     add_fields_mod.add_context_menu = patched_add_context_menu
     if dock_web_view_mod:
         dock_web_view_mod.add_context_menu = patched_add_context_menu
+        
+        original_dock_context_menu = dock_web_view_mod.ResizableWebView.contextMenu
+        
+        def new_dock_context_menu(self, webview, menu, *args, **kwargs):
+            original_dock_context_menu(self, webview, menu, *args, **kwargs)
+            selected = webview.page().selectedText()
+            if selected:
+                from aqt import mw, QAction
+                
+                cloze_action = QAction("🤖Explain cloze with AnkiTerminator", mw)
+                
+                def explain_cloze(selected_text):
+                    import re
+                    processed_text = re.sub(r'\{\{c\d+::[^}]+?\}\}', '[...]', selected_text)
+                    self.explain_with_ankiteminator(processed_text)
+                    
+                cloze_action.triggered.connect(
+                    lambda _, selected_text=selected: explain_cloze(selected_text)
+                )
+                menu.addAction(cloze_action)
+                
+        dock_web_view_mod.ResizableWebView.contextMenu = new_dock_context_menu
+
     add_fields_mod.context_menu = patched_context_menu
     add_fields_mod._add_text_to_card = patched_add_text_to_card
-    companion_logger.log("[Context Menu Patch] Successfully patched context_menu and _add_text_to_card!")
+    companion_logger.log("[Context Menu Patch] Successfully patched context_menu, _add_text_to_card, and ResizableWebView contextMenu!")
 

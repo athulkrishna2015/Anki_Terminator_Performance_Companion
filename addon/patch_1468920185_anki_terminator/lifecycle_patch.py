@@ -428,6 +428,98 @@ def patch(dock_web_view_mod):
 
     dock_web_view_mod.ResizableWebView.__init__ = new_init
 
+    # Hook last_text_toolbar to replace "AI" button with QComboBox dropdown
+    original_last_text_toolbar = dock_web_view_mod.ResizableWebView.last_text_toolbar
+    
+    def new_last_text_toolbar(self, layout):
+        original_make_button = self.make_button
+        
+        def custom_make_button(button_name, action_function, toolbar, sound=False, tooltip_text=None):
+            if button_name == "AI":
+                from aqt.qt import QComboBox
+                
+                combo = QComboBox()
+                combo.setToolTip("Quick Change AI")
+                
+                try:
+                    path_manager = importlib.import_module("1468920185.path_manager")
+                    themes = [t for t in path_manager.THEMES if t not in path_manager.WITHOUT_THEMES]
+                except Exception:
+                    themes = ["Chat_GPT", "Google_Bard", "Google_AI_mode", "Bing_Chat", "Claude", "perplexity", "DeepSeek", "Grok_AI", "Duck_AI"]
+                
+                combo.addItems(themes)
+                
+                config = mw.addonManager.getConfig("1468920185") or {}
+                now_ai = config.get("now_AI_type", "Chat_GPT")
+                if now_ai in themes:
+                    combo.setCurrentText(now_ai)
+                
+                combo.setStyleSheet(
+                    "QComboBox { border: 1px solid #555; border-radius: 4px; padding: 1px 4px; background: #2a2a2a; color: #eee; font-weight: bold; }"
+                )
+                combo.setFixedHeight(25)
+                combo.setCursor(Qt.CursorShape.PointingHandCursor)
+                
+                def on_ai_activated(index):
+                    selected_ai = combo.itemText(index)
+                    current_config = mw.addonManager.getConfig("1468920185") or {}
+                    active_ai = current_config.get("now_AI_type", "Chat_GPT")
+                    
+                    if selected_ai == active_ai:
+                        companion_logger.log(f"[AI Dropdown] Same AI '{selected_ai}' selected. Performing hard refresh...")
+                        if hasattr(self, "webview") and self.webview:
+                            try:
+                                from aqt.qt import QWebEnginePage
+                                self.webview.triggerPageAction(QWebEnginePage.WebAction.ReloadAndBypassCache)
+                            except Exception:
+                                self.webview.reload()
+                            if self.webview.history():
+                                self.webview.history().clear()
+                    else:
+                        companion_logger.log(f"[AI Dropdown] Changing AI to '{selected_ai}'...")
+                        current_config["now_AI_type"] = selected_ai
+                        mw.addonManager.writeConfig("1468920185", current_config)
+                        
+                        try:
+                            path_manager = importlib.import_module("1468920185.path_manager")
+                            THEME_CHANGE = path_manager.THEME_CHANGE
+                            PYGsound = dock_web_view_mod.PYGsound
+                            PYGsound(THEME_CHANGE)
+                        except Exception as e:
+                            companion_logger.log(f"[AI Dropdown] Failed to play sound: {e}")
+                            
+                        self.change_AI_type(update=False)
+                
+                combo.activated.connect(on_ai_activated)
+                self.ai_dropdown = combo
+                toolbar.addWidget(combo)
+                companion_logger.log("[AI Dropdown] Successfully replaced 'AI' button with QComboBox dropdown.")
+            else:
+                original_make_button(button_name, action_function, toolbar, sound, tooltip_text)
+                
+        self.make_button = custom_make_button
+        try:
+            original_last_text_toolbar(self, layout)
+        finally:
+            if hasattr(self, "__dict__") and "make_button" in self.__dict__:
+                del self.make_button
+
+    dock_web_view_mod.ResizableWebView.last_text_toolbar = new_last_text_toolbar
+
+    # Sync dropdown selection with actual active AI type
+    original_change_AI_type = dock_web_view_mod.ResizableWebView.change_AI_type
+    
+    def new_change_AI_type(self, update=True):
+        original_change_AI_type(self, update=update)
+        if hasattr(self, "ai_dropdown") and self.ai_dropdown:
+            config = mw.addonManager.getConfig("1468920185") or {}
+            now_ai = config.get("now_AI_type", "Chat_GPT")
+            self.ai_dropdown.blockSignals(True)
+            self.ai_dropdown.setCurrentText(now_ai)
+            self.ai_dropdown.blockSignals(False)
+            
+    dock_web_view_mod.ResizableWebView.change_AI_type = new_change_AI_type
+
     def navigate_address(sidebar, text):
         if not text.strip(): return
         if "." in text and " " not in text:
