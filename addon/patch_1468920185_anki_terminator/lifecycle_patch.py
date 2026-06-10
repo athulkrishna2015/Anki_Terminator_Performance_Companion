@@ -524,6 +524,16 @@ def patch(dock_web_view_mod):
                 
                 self.ai_dropdown = btn
                 toolbar.addWidget(btn)
+                
+                # Initial window icon setup
+                try:
+                    self.setWindowIcon(get_ai_icon(now_ai))
+                    dock_widget = getattr(dock_web_view_mod, "chatGPTdockWidget", None)
+                    if dock_widget:
+                        dock_widget.setWindowIcon(get_ai_icon(now_ai))
+                except Exception as e:
+                    companion_logger.log(f"[Sync Icon] Failed to initialize sidebar icon: {e}")
+
                 companion_logger.log("[AI Dropdown] Successfully replaced 'AI' button with QToolButton text dropdown.")
             else:
                 original_make_button(button_name, action_function, toolbar, sound, tooltip_text)
@@ -542,6 +552,16 @@ def patch(dock_web_view_mod):
     
     def new_change_AI_type(self, update=True):
         original_change_AI_type(self, update=update)
+        try:
+            config = mw.addonManager.getConfig("1468920185") or {}
+            now_ai = config.get("now_AI_type", "Chat_GPT")
+            icon = get_ai_icon(now_ai)
+            self.setWindowIcon(icon)
+            dock_widget = getattr(dock_web_view_mod, "chatGPTdockWidget", None)
+            if dock_widget:
+                dock_widget.setWindowIcon(icon)
+        except Exception as e:
+            companion_logger.log(f"[Sync Icon] Failed to update sidebar icon: {e}")
             
     dock_web_view_mod.ResizableWebView.change_AI_type = new_change_AI_type
 

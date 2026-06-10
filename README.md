@@ -92,6 +92,17 @@ Please refer to [DEVELOPMENT.md](DEVELOPMENT.md) for details on project director
 
 ## Changelog
 
+### June 10, 2026 (v1.7.0)
+- **AI Dropdown Selector in Header**:
+  - Replaced the static "AI" button with a dynamic `QToolButton` dropdown.
+  - Displays a menu containing all available AIs with their logos and full names for fast switching.
+  - Selecting the active AI performs a hard reload/cache-bypass and clears browser history.
+- **Explain Cloze Context Menu Action**:
+  - Added a new right-click context menu option **"Explain cloze with AnkiTerminator"**.
+  - Automatically censors cloze deletion blocks (e.g., `{{c1::answer}}`) in selected text to `[...]` before sending it to the AI, ensuring the model is not influenced by the cloze answer.
+- **Sidebar Favicon Syncing**:
+  - Automatically updates the sidebar's dock widget title bar and tab icon to match the favicon/logo of the active AI dynamically on startup and when switching AIs.
+
 ### June 10, 2026 (v1.6.1)
 - **UI Stability & Transition Fixes**:
   - Refined **Persistent View** to eliminate white/blank screens during navigation using action-based pre-capturing and buffered hiding.
