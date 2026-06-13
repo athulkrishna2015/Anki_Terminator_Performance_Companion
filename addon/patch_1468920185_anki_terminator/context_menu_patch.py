@@ -160,7 +160,7 @@ JS_HTML_EXTRACTOR = r"""
         });
 
         // 7. Sanitize HTML tags and strip all non-whitelisted attributes
-        var allowedTags = ["P", "SPAN", "BR", "B", "STRONG", "I", "EM", "U", "CODE", "PRE", "UL", "OL", "LI", "SUB", "SUP", "A", "DIV", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", "TABLE", "TBODY", "THEAD", "TFOOT", "TR", "TD", "TH", "CAPTION", "COL", "COLGROUP"];
+        var allowedTags = ["P", "SPAN", "BR", "B", "STRONG", "I", "EM", "U", "CODE", "PRE", "UL", "OL", "LI", "SUB", "SUP", "A", "DIV", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", "TABLE", "TBODY", "THEAD", "TFOOT", "TR", "TD", "TH", "CAPTION", "COL", "COLGROUP", "BLOCKQUOTE", "HR", "S", "DEL", "STRIKE", "ANKI-MATHJAX"];
         
         function sanitizeNode(node) {
             if (node.nodeType === Node.ELEMENT_NODE) {
@@ -176,7 +176,7 @@ JS_HTML_EXTRACTOR = r"""
                     }
                     node.replaceWith(frag);
                 } else {
-                    // Allowed tag: strip all attributes except href on A, src on IMG, border on TABLE, and colspan/rowspan on TD/TH
+                    // Allowed tag: strip all attributes except href on A, src on IMG, border on TABLE, colspan/rowspan on TD/TH, and block/data-formula on ANKI-MATHJAX
                     var attrs = Array.from(node.attributes);
                     attrs.forEach(function(attr) {
                         var attrName = attr.name.toLowerCase();
@@ -188,6 +188,8 @@ JS_HTML_EXTRACTOR = r"""
                             // keep border
                         } else if ((tagName === "TD" || tagName === "TH") && (attrName === "colspan" || attrName === "rowspan")) {
                             // keep colspan and rowspan
+                        } else if (tagName === "ANKI-MATHJAX" && (attrName === "block" || attrName === "data-formula")) {
+                            // keep block and data-formula
                         } else {
                             node.removeAttribute(attr.name);
                         }
