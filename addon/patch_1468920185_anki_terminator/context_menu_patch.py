@@ -160,7 +160,7 @@ JS_HTML_EXTRACTOR = r"""
         });
 
         // 7. Sanitize HTML tags and strip all non-whitelisted attributes
-        var allowedTags = ["P", "SPAN", "BR", "B", "STRONG", "I", "EM", "U", "CODE", "PRE", "UL", "OL", "LI", "SUB", "SUP", "A", "DIV", "H1", "H2", "H3", "H4", "H5", "H6", "IMG"];
+        var allowedTags = ["P", "SPAN", "BR", "B", "STRONG", "I", "EM", "U", "CODE", "PRE", "UL", "OL", "LI", "SUB", "SUP", "A", "DIV", "H1", "H2", "H3", "H4", "H5", "H6", "IMG", "TABLE", "TBODY", "THEAD", "TFOOT", "TR", "TD", "TH", "CAPTION", "COL", "COLGROUP"];
         
         function sanitizeNode(node) {
             if (node.nodeType === Node.ELEMENT_NODE) {
@@ -176,7 +176,7 @@ JS_HTML_EXTRACTOR = r"""
                     }
                     node.replaceWith(frag);
                 } else {
-                    // Allowed tag: strip all attributes except href on A, src on IMG
+                    // Allowed tag: strip all attributes except href on A, src on IMG, border on TABLE, and colspan/rowspan on TD/TH
                     var attrs = Array.from(node.attributes);
                     attrs.forEach(function(attr) {
                         var attrName = attr.name.toLowerCase();
@@ -184,6 +184,10 @@ JS_HTML_EXTRACTOR = r"""
                             // keep href
                         } else if (tagName === "IMG" && attrName === "src") {
                             // keep src
+                        } else if (tagName === "TABLE" && attrName === "border") {
+                            // keep border
+                        } else if ((tagName === "TD" || tagName === "TH") && (attrName === "colspan" || attrName === "rowspan")) {
+                            // keep colspan and rowspan
                         } else {
                             node.removeAttribute(attr.name);
                         }
