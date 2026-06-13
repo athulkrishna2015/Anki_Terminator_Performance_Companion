@@ -104,6 +104,12 @@ Please refer to [DEVELOPMENT.md](DEVELOPMENT.md) for details on project director
 
 ## Changelog
 
+### June 13, 2026 (v1.7.1)
+- **Rich Text & Table Selection Preservation**:
+  - Added full support for rich text elements when right-clicking and copying selections to Anki fields.
+  - Preserves standard HTML tables (`<table>`, `<tbody>`, `<tr>`, `<td>`, etc.) including cell-spanning layout attributes (`colspan`, `rowspan`) and borders.
+  - Preserves blockquotes (`<blockquote>`), horizontal rules (`<hr>`), strikethroughs (`<s>`, `<del>`, `<strike>`), and custom `<anki-mathjax>` tags.
+
 ### June 10, 2026 (v1.7.0)
 - **AI Dropdown Selector in Header**:
   - Replaced the static "AI" button with a dynamic `QToolButton` dropdown.
